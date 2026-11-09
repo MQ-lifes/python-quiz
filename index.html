@@ -37,6 +37,23 @@
   .page { max-width: 900px; margin: 0 auto; padding: 30px 20px 50px; }
   .hero { padding: 6px 4px 26px; border-bottom: 1px solid var(--line); }
   .kicker { font-size: 11px; letter-spacing: .18em; color: var(--accent); font-weight: 750; }
+  .hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+  .sign { flex: 0 0 auto; white-space: nowrap; line-height: 1; margin-top: -3px; }
+  /* 手写体签名：不加载任何外部字体，按系统手写体依次回退；无手写体的设备退化为 cursive */
+  .sign-script {
+    display: inline-block; position: relative;
+    font-family: "Segoe Script", "Bradley Hand", "Brush Script MT", "Snell Roundhand", "Noteworthy", cursive;
+    font-size: 23px; font-style: italic; font-weight: 500;
+    letter-spacing: .04em; color: var(--accent); opacity: .9;
+    padding: 0 3px 4px; transform: rotate(-5deg);
+  }
+  .sign-script::after {
+    content: ""; position: absolute; left: 0; right: -2px; bottom: 0; height: 2px; border-radius: 2px;
+    background: linear-gradient(90deg, rgba(15,118,110,0), rgba(15,118,110,.5) 15%, rgba(15,118,110,.38) 60%, rgba(15,118,110,0) 100%);
+    transform: rotate(-2deg);
+  }
+  /* 签名替换位：把 <span class="sign-script"> 换成 <img class="sign-img" src="..." alt="MQ"> 即可 */
+  .sign-img { display: block; height: 30px; width: auto; }
   h1 { margin: 10px 0 8px; font-size: clamp(28px, 5vw, 42px); line-height: 1.15; letter-spacing: -.025em; font-weight: 780; }
   h1 span { color: var(--accent); }
   .sub { margin: 0; color: var(--muted); font-size: 14px; max-width: 680px; }
@@ -116,11 +133,14 @@
   .foot p { margin: 0; }
   .foot-links { display: flex; gap: 8px; margin-top: 8px !important; flex-wrap: wrap; }
   .foot-links button { border: 0; background: none; padding: 0; color: var(--muted); font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .foot-sign { margin-top: 14px !important; color: #9aa19c; font-size: 11.5px; letter-spacing: .06em; }
+  .foot-sign .sign-inline { font-family: "Segoe Script", "Bradley Hand", "Brush Script MT", "Snell Roundhand", "Noteworthy", cursive; font-style: italic; font-size: 14px; color: var(--muted); letter-spacing: .02em; }
   .toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(8px); background: #20262b; color: #fff; font-size: 13px; padding: 9px 14px; border-radius: 10px; opacity: 0; pointer-events: none; transition: opacity .18s ease, transform .18s ease; z-index: 10; max-width: calc(100vw - 40px); }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   @media (max-width: 620px) {
     .page { padding: 20px 14px 40px; }
     .hero { padding-bottom: 20px; }
+    .sign-script { font-size: 20px; }
     .stats { gap: 22px; margin-top: 18px; }
     .stat span { font-size: 22px; }
     .controls { align-items: stretch; }
@@ -142,7 +162,12 @@
 <body>
 <div class="page">
   <header class="hero">
-    <div class="kicker">PYTHON · REVIEW BANK</div>
+    <div class="hero-top">
+      <div class="kicker">PYTHON · REVIEW BANK</div>
+      <!-- 手写签名位：如需换成签名图片，把下面的 .sign-script 替换为
+           <img class="sign-img" src="sign.png" alt="MQ">（建议用 data:image/... 内联以保持单文件） -->
+      <div class="sign" aria-label="MQ 的签名"><span class="sign-script">MQ</span></div>
+    </div>
     <h1>Python 程序设计 <span>复习刷题</span></h1>
     <p class="sub">184 道题 · 单选 / 判断 / 填空 / 简答 / 编程 · 自动判分、错题本与知识点筛选。题目与答案来自复习题库 PDF，解析为补充整理。</p>
     <div class="stats">
@@ -232,6 +257,7 @@
     <p>快捷键：A / B / C / D 选择 · Enter 提交或下一题 · ← / → 切换题目 · 主观题 Ctrl + Enter 提交。</p>
     <p>简答题与编程题无法机器判分，提交后请对照参考答案自评；单选、判断、填空自动判分。</p>
     <p class="foot-links"><button type="button" id="resetProgress">重置练习进度</button><span>·</span><button type="button" id="clearWrong">清空错题本</button></p>
+    <p class="foot-sign">Designed by <span class="sign-inline">MQ</span></p>
   </footer>
 </div>
 
