@@ -1,0 +1,6 @@
+﻿# 仅发布 index.html，其余本地文件不入库
+*.pdf
+*.txt
+node_modules/
+.DS_Store
+Thumbs.db

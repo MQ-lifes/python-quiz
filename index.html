@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Python 程序设计 · 交互刷题</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f4f2ec;
+    --surface: #fffdf8;
+    --ink: #1f2723;
+    --muted: #6d746f;
+    --line: #e2ddd2;
+    --accent: #0f766e;
+    --accent-weak: #e7f2ef;
+    --good: #15803d;
+    --good-weak: #edf7f0;
+    --bad: #b91c1c;
+    --bad-weak: #fdf0ee;
+    --warn: #a16207;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(900px 500px at 12% -10%, #fbfaf6 0%, rgba(251,250,246,0) 60%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.65;
+  }
+  button, input, select, textarea { font-family: inherit; }
+  .page { max-width: 900px; margin: 0 auto; padding: 30px 20px 50px; }
+  .hero { padding: 6px 4px 26px; border-bottom: 1px solid var(--line); }
+  .kicker { font-size: 11px; letter-spacing: .18em; color: var(--accent); font-weight: 750; }
+  h1 { margin: 10px 0 8px; font-size: clamp(28px, 5vw, 42px); line-height: 1.15; letter-spacing: -.025em; font-weight: 780; }
+  h1 span { color: var(--accent); }
+  .sub { margin: 0; color: var(--muted); font-size: 14px; max-width: 680px; }
+  .stats { display: flex; gap: 34px; margin-top: 22px; flex-wrap: wrap; }
+  .stat span { display: block; font-size: 25px; font-weight: 780; line-height: 1.1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .stat small { font-size: 12px; color: var(--muted); }
+  .progress-track { height: 4px; background: #e6e1d7; border-radius: 99px; margin-top: 18px; overflow: hidden; }
+  #globalProgress { height: 100%; width: 0; background: var(--accent); border-radius: 99px; transition: width .2s ease; }
+  .controls { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin: 22px 0 16px; }
+  .modes { display: inline-flex; background: #eae6dc; padding: 4px; border-radius: 12px; gap: 2px; }
+  .modes button { border: 0; background: transparent; padding: 8px 14px; border-radius: 9px; font-size: 13px; color: #59615c; cursor: pointer; white-space: nowrap; }
+  .modes button.active { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(31,39,35,.09); font-weight: 700; }
+  #wrongBadge { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 4px; border-radius: 99px; background: #efe1dc; color: var(--bad); font-size: 11px; line-height: 17px; text-align: center; }
+  .filters { display: flex; gap: 10px; flex-wrap: wrap; }
+  .filters label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  select { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 9px; padding: 7px 9px; font-size: 13px; max-width: 190px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 26px 28px 22px; box-shadow: 0 14px 44px rgba(42, 36, 26, .055); }
+  .card-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+  .crumb { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .badges { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .badge { font-size: 11px; line-height: 1.5; padding: 3px 8px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); background: #faf8f3; white-space: nowrap; }
+  .type-single { color: #0f766e; background: #e8f3f0; border-color: #cfe6df; }
+  .type-judge { color: #1d4ed8; background: #edf2fe; border-color: #d6e1fb; }
+  .type-fill { color: #a16207; background: #fbf4e4; border-color: #efe0bd; }
+  .type-short { color: #6d28d9; background: #f3eefc; border-color: #e3d7fa; }
+  .type-code { color: #334155; background: #eef1f4; border-color: #dbe1e7; }
+  .badge.last-good { color: var(--good); background: var(--good-weak); border-color: #c8e5d0; }
+  .badge.last-bad { color: var(--bad); background: var(--bad-weak); border-color: #ecc9c5; }
+  .stem { font-size: 17px; line-height: 1.78; white-space: pre-line; overflow-wrap: anywhere; }
+  .code-wrap { margin: 14px 0 0; min-width: 0; }
+  pre { margin: 0; background: #20262b; color: #e9ede9; padding: 14px 16px; border-radius: 12px; overflow: auto; max-width: 100%; font: 13px/1.68 var(--mono); white-space: pre; tab-size: 4; }
+  .options { display: grid; gap: 10px; margin-top: 20px; }
+  .option { display: flex; gap: 12px; align-items: flex-start; width: 100%; text-align: left; padding: 13px 14px; border: 1px solid var(--line); background: #fffefa; border-radius: 12px; cursor: pointer; color: var(--ink); font-size: 15px; line-height: 1.6; transition: background .12s ease, border-color .12s ease; }
+  .option:hover:not(:disabled) { border-color: #b7cdc7; background: #fbfdfb; }
+  .option.selected { border-color: var(--accent); background: var(--accent-weak); }
+  .option.correct { border-color: #a7d3b4; background: var(--good-weak); }
+  .option.wrong { border-color: #e3b6b2; background: var(--bad-weak); }
+  .option:disabled { cursor: default; }
+  .key { flex: 0 0 26px; height: 26px; border-radius: 7px; border: 1px solid var(--line); display: grid; place-items: center; font-size: 12px; font-weight: 750; color: var(--muted); background: #fff; }
+  .option.selected .key { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .option.correct .key { background: var(--good); color: #fff; border-color: var(--good); }
+  .option.wrong .key { background: var(--bad); color: #fff; border-color: var(--bad); }
+  .opt-text { flex: 1; min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .opt-text.mono { font-family: var(--mono); font-size: 13px; line-height: 1.65; }
+  .fill-area, .subjective { margin-top: 20px; }
+  input[type="text"], textarea { width: 100%; border: 1px solid var(--line); background: #fffefa; border-radius: 12px; padding: 12px 14px; color: var(--ink); font-size: 15px; outline: none; transition: border-color .12s ease, box-shadow .12s ease; }
+  input[type="text"]:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-weak); }
+  textarea { resize: vertical; min-height: 112px; font-family: var(--mono); font-size: 13px; line-height: 1.65; }
+  .hint { margin: 8px 0 0; font-size: 12px; color: var(--muted); }
+  .actions { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+  .btn { border: 1px solid var(--line); background: #fffefa; color: var(--ink); padding: 10px 16px; border-radius: 11px; font-size: 14px; cursor: pointer; transition: background .12s ease, border-color .12s ease; }
+  .btn:hover:not(:disabled) { border-color: #b8b0a2; }
+  .btn:disabled { opacity: .42; cursor: not-allowed; }
+  .btn.primary { background: var(--ink); border-color: var(--ink); color: #fff; font-weight: 650; }
+  .btn.primary:hover:not(:disabled) { background: #000; }
+  .btn.ghost { background: transparent; }
+  .btn.good { background: var(--good-weak); border-color: #a7d3b4; color: #166534; }
+  .btn.bad { background: var(--bad-weak); border-color: #e3b6b2; color: #991b1b; }
+  .hidden { display: none !important; }
+  .answer-panel { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 20px; }
+  .answer-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  #resultLine { font-size: 15px; font-weight: 750; }
+  #resultLine.good { color: var(--good); }
+  #resultLine.bad { color: var(--bad); }
+  #resultLine.neutral { color: var(--warn); }
+  #answerTag { font-size: 12px; color: var(--muted); }
+  .answer-body { margin-top: 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .answer-block { min-width: 0; }
+  .answer-block h3 { margin: 0 0 6px; font-size: 11px; letter-spacing: .1em; color: var(--muted); font-weight: 750; }
+  .answer-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.7; }
+  .answer-block p { margin: 0; font-size: 14px; color: #3c4640; line-height: 1.78; }
+  .answer-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+  .empty { padding: 64px 24px; text-align: center; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: 18px; }
+  .empty strong { display: block; color: var(--ink); font-size: 18px; margin-bottom: 6px; }
+  .empty p { margin: 0; font-size: 14px; }
+  .foot { margin-top: 22px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+  .foot p { margin: 0; }
+  .foot-links { display: flex; gap: 8px; margin-top: 8px !important; flex-wrap: wrap; }
+  .foot-links button { border: 0; background: none; padding: 0; color: var(--muted); font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(8px); background: #20262b; color: #fff; font-size: 13px; padding: 9px 14px; border-radius: 10px; opacity: 0; pointer-events: none; transition: opacity .18s ease, transform .18s ease; z-index: 10; max-width: calc(100vw - 40px); }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  @media (max-width: 620px) {
+    .page { padding: 20px 14px 40px; }
+    .hero { padding-bottom: 20px; }
+    .stats { gap: 22px; margin-top: 18px; }
+    .stat span { font-size: 22px; }
+    .controls { align-items: stretch; }
+    .modes { width: 100%; justify-content: space-between; }
+    .modes button { flex: 1; padding: 8px 6px; }
+    .filters { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .filters label { display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-width: 0; white-space: nowrap; }
+    select { width: 100%; max-width: none; }
+    .card { padding: 20px 16px 18px; border-radius: 15px; }
+    .card-top { margin-bottom: 14px; }
+    .stem { font-size: 16px; }
+    .option { padding: 12px; font-size: 14.5px; }
+    .actions .btn { flex: 1; }
+    .actions #submitBtn { flex-basis: 100%; order: -1; }
+    .answer-head { align-items: flex-start; flex-direction: column; gap: 3px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="hero">
+    <div class="kicker">PYTHON · REVIEW BANK</div>
+    <h1>Python 程序设计 <span>复习刷题</span></h1>
+    <p class="sub">184 道题 · 单选 / 判断 / 填空 / 简答 / 编程 · 自动判分、错题本与知识点筛选。题目与答案来自复习题库 PDF，解析为补充整理。</p>
+    <div class="stats">
+      <div class="stat"><span id="statAnswered">0</span><small>已练 / 184</small></div>
+      <div class="stat"><span id="statAccuracy">—</span><small>总正确率</small></div>
+      <div class="stat"><span id="statWrong">0</span><small>错题本</small></div>
+    </div>
+    <div class="progress-track" aria-hidden="true"><div id="globalProgress"></div></div>
+  </header>
+
+  <section class="controls" aria-label="练习设置">
+    <div class="modes" role="tablist" aria-label="练习模式">
+      <button type="button" data-mode="seq" class="active" role="tab" aria-selected="true">顺序练习</button>
+      <button type="button" data-mode="random" role="tab" aria-selected="false">随机抽题</button>
+      <button type="button" data-mode="wrong" role="tab" aria-selected="false">错题本<span id="wrongBadge">0</span></button>
+    </div>
+    <div class="filters">
+      <label>题型 <select id="typeFilter" aria-label="按题型筛选"></select></label>
+      <label>知识点 <select id="topicFilter" aria-label="按知识点筛选"></select></label>
+    </div>
+  </section>
+
+  <main id="card" class="card">
+    <div class="card-top">
+      <div class="crumb" id="queuePos"></div>
+      <div class="badges">
+        <span class="badge" id="typeBadge"></span>
+        <span class="badge" id="topicBadge"></span>
+        <span class="badge" id="origNo"></span>
+        <span class="badge hidden" id="lastBadge"></span>
+      </div>
+    </div>
+
+    <div id="stem" class="stem"></div>
+    <div id="stemCodeWrap" class="code-wrap hidden"><pre id="stemCode"></pre></div>
+
+    <div id="options" class="options"></div>
+
+    <div id="fillArea" class="fill-area hidden">
+      <input id="fillInput" type="text" autocomplete="off" spellcheck="false" placeholder="输入你的答案，按 Enter 提交">
+      <p class="hint">提交后自动比对；若表述不同被误判，可点击“我答对了（校正）”。</p>
+    </div>
+
+    <div id="subjectiveArea" class="subjective hidden">
+      <textarea id="subjectiveInput" rows="4" spellcheck="false" placeholder="可以先写下思路或代码，再对照参考答案（Ctrl + Enter 提交）"></textarea>
+    </div>
+
+    <div class="actions">
+      <button type="button" id="prevBtn" class="btn ghost">← 上一题</button>
+      <button type="button" id="submitBtn" class="btn primary">提交答案</button>
+      <button type="button" id="nextBtn" class="btn ghost">下一题 →</button>
+    </div>
+
+    <section id="answerPanel" class="answer-panel hidden" aria-live="polite">
+      <div class="answer-head">
+        <span id="resultLine"></span>
+        <span id="answerTag"></span>
+      </div>
+      <div class="answer-body">
+        <div class="answer-block" id="answerTextBlock">
+          <h3>正确答案</h3>
+          <div id="answerText" class="answer-text"></div>
+        </div>
+        <div class="answer-block">
+          <h3>解析</h3>
+          <p id="explanation"></p>
+        </div>
+        <div class="answer-block hidden" id="answerCodeWrap">
+          <h3>参考代码</h3>
+          <pre id="answerCode"></pre>
+        </div>
+      </div>
+      <div class="answer-actions">
+        <button type="button" id="selfRight" class="btn good hidden">我答对了</button>
+        <button type="button" id="selfWrong" class="btn bad hidden">我答错了</button>
+        <button type="button" id="removeWrong" class="btn ghost hidden">已掌握，移出错题本</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="empty" class="empty hidden">
+    <strong id="emptyTitle">当前筛选下没有题目</strong>
+    <p id="emptyText">换一个题型或知识点试试。</p>
+  </div>
+
+  <footer class="foot">
+    <p>快捷键：A / B / C / D 选择 · Enter 提交或下一题 · ← / → 切换题目 · 主观题 Ctrl + Enter 提交。</p>
+    <p>简答题与编程题无法机器判分，提交后请对照参考答案自评；单选、判断、填空自动判分。</p>
+    <p class="foot-links"><button type="button" id="resetProgress">重置练习进度</button><span>·</span><button type="button" id="clearWrong">清空错题本</button></p>
+  </footer>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<noscript><div style="padding:20px;text-align:center">需要启用 JavaScript 才能使用刷题功能。</div></noscript>
+
+<script id="qdata" type="application/json">[{"id":"s1","type":"single","no":1,"stem":"以下哪一种编程语言是脚本语言（ ）。","stemCode":"","options":[{"key":"A","text":"C","mono":false},{"key":"B","text":"C++","mono":false},{"key":"C","text":"Python","mono":false},{"key":"D","text":"Delphi","mono":false}],"answer":"C","topic":"语言基础","explanation":"Python 是解释型脚本语言；C/C++ 需要编译，Delphi 也属于编译型语言。"},{"id":"s2","type":"single","no":2,"stem":"下面不属于 Python 特性的是（ ）。","stemCode":"","options":[{"key":"A","text":"本身开源免费","mono":false},{"key":"B","text":"平台无关：Python 程序可以在任何安装了解释器的操作系统环境中执行","mono":false},{"key":"C","text":"扩展性：Python 语言能够集成 C、C++ 等语言编写的代码","mono":false},{"key":"D","text":"属于低级语言","mono":false}],"answer":"D","topic":"语言基础","explanation":"Python 是高级语言，不是低级语言；开源、跨平台、可集成 C/C++ 都是它的特点。"},{"id":"s3","type":"single","no":3,"stem":"从计算机的本质看有功能性和可编程性二个基本特性，以下哪个不属于功能性（ ）。","stemCode":"","options":[{"key":"A","text":"编写复杂程序","mono":false},{"key":"B","text":"数据计算","mono":false},{"key":"C","text":"输入输出","mono":false},{"key":"D","text":"结果存储","mono":false}],"answer":"A","topic":"语言基础","explanation":"“编写复杂程序”体现的是可编程性；数据计算、输入输出、结果存储属于功能性。"},{"id":"s4","type":"single","no":4,"stem":"以下哪一种语言不属于计算机高级语言（ ）。","stemCode":"","options":[{"key":"A","text":"C","mono":false},{"key":"B","text":"Java","mono":false},{"key":"C","text":"机器语言","mono":false},{"key":"D","text":"Python","mono":false}],"answer":"C","topic":"语言基础","explanation":"机器语言是二进制低级语言；C、Java、Python 都是高级语言。"},{"id":"s5","type":"single","no":5,"stem":"以下不属于面向对象语言的是（ ）。","stemCode":"","options":[{"key":"A","text":"Python 语言","mono":false},{"key":"B","text":"Java 语言","mono":false},{"key":"C","text":"C++ 语言","mono":false},{"key":"D","text":"C 语言","mono":false}],"answer":"D","topic":"语言基础","explanation":"C 语言是面向过程的；Python、Java、C++ 都支持面向对象。"},{"id":"s6","type":"single","no":6,"stem":"Python 程序在执行一次之后会自动生成扩展名为（ ）的字节码文件，以提高运行效率。","stemCode":"","options":[{"key":"A","text":".pyf","mono":false},{"key":"B","text":".py","mono":false},{"key":"C","text":".pyb","mono":false},{"key":"D","text":".pyc","mono":false}],"answer":"D","topic":"语言基础","explanation":"Python 首次执行后会把字节码缓存为 .pyc 文件（通常在 __pycache__ 目录）。"},{"id":"s7","type":"single","no":7,"stem":"Python 源程序文件的扩展名为（ ）。","stemCode":"","options":[{"key":"A","text":"py","mono":false},{"key":"B","text":"cpp","mono":false},{"key":"C","text":"txt","mono":false},{"key":"D","text":"exe","mono":false}],"answer":"A","topic":"语言基础","explanation":"Python 源程序文件的标准扩展名是 .py。"},{"id":"s8","type":"single","no":8,"stem":"下列对 input() 函数的描述正确的是（ ）。","stemCode":"","options":[{"key":"A","text":"a = input(\"请输入一个整数\")","mono":true},{"key":"B","text":"a = input(请输入一个整数：，100)","mono":true},{"key":"C","text":"a = input(请输入一个整数：)","mono":true},{"key":"D","text":"a = input(\"请输入一个整数\"，100)","mono":true}],"answer":"A","topic":"语言基础","explanation":"input() 的提示参数只能是字符串，并且只能传一个参数，所以 A 正确。"},{"id":"s9","type":"single","no":9,"stem":"以下选项中可用作 Python 标识符的是（ ）。","stemCode":"","options":[{"key":"A","text":"123456","mono":false},{"key":"B","text":"_abc","mono":false},{"key":"C","text":"type","mono":false},{"key":"D","text":"a-b","mono":false}],"answer":"B","topic":"语言基础","explanation":"A 以数字开头、D 含减号，均不合法；题库答案选 B（_abc 以下划线开头）。严格说 type 也能作标识符，但会遮蔽内置函数，考试按题库作答。"},{"id":"s10","type":"single","no":10,"stem":"以下哪个不是 Python3 中 33 个保留字之一（ ）。","stemCode":"","options":[{"key":"A","text":"for","mono":false},{"key":"B","text":"if","mono":false},{"key":"C","text":"while","mono":false},{"key":"D","text":"print","mono":false}],"answer":"D","topic":"语言基础","explanation":"print 是内置函数，不是保留字；for、if、while 都是 Python 关键字。"},{"id":"s11","type":"single","no":11,"stem":"以下哪个 Python 指令后不需要缩进（ ）。","stemCode":"","options":[{"key":"A","text":"input","mono":false},{"key":"B","text":"if","mono":false},{"key":"C","text":"while","mono":false},{"key":"D","text":"for","mono":false}],"answer":"A","topic":"语言基础","explanation":"input 是普通函数调用，不需要缩进；if、while、for 的语句块必须缩进。"},{"id":"s12","type":"single","no":12,"stem":"Python 中的注释符号 # 和 ''' 的区别，以下说法正确的是（ ）。","stemCode":"","options":[{"key":"A","text":"''' 和 # 在使用时需要在开头与结尾都标注","mono":false},{"key":"B","text":"二者无区别","mono":false},{"key":"C","text":"''' 为多行注释，# 为单行注释","mono":false},{"key":"D","text":"以上都不对","mono":false}],"answer":"C","topic":"语言基础","explanation":"# 用于单行注释；三个单引号（或三个双引号）可作多行注释/多行字符串。"},{"id":"s13","type":"single","no":13,"stem":"在 Python 语言中，若多条语句写在一行上，则语句之间以（ ）间隔。","stemCode":"","options":[{"key":"A","text":"空格","mono":false},{"key":"B","text":"冒号","mono":false},{"key":"C","text":"逗号","mono":false},{"key":"D","text":"分号","mono":false}],"answer":"D","topic":"语言基础","explanation":"Python 允许用分号把多条简单语句写在同一行。"},{"id":"s14","type":"single","no":14,"stem":"以下属于合法的 Python 语言用户标识符是（ ）。","stemCode":"","options":[{"key":"A","text":"a.123","mono":false},{"key":"B","text":"a_b","mono":false},{"key":"C","text":"def","mono":false},{"key":"D","text":"1Max","mono":false}],"answer":"B","topic":"语言基础","explanation":"a.123 含点、def 是关键字、1Max 以数字开头；只有 a_b 合法。"},{"id":"s15","type":"single","no":15,"stem":"Python 语句 print(type(2/1)) 的输出结果是（ ）。","stemCode":"","options":[{"key":"A","text":"class 'number","mono":false},{"key":"B","text":"class 'int'","mono":false},{"key":"C","text":"class 'float'","mono":false},{"key":"D","text":"class 'double'","mono":false}],"answer":"C","topic":"数据类型","explanation":"2/1 的结果是 2.0，所以 type(2/1) 是 \u003cclass 'float'>。"},{"id":"s16","type":"single","no":16,"stem":"Python 语句 x = 'car '; y = 2; print(x + y) 的输出结果是（ ）。","stemCode":"","options":[{"key":"A","text":"语法错","mono":false},{"key":"B","text":"car2","mono":false},{"key":"C","text":"2","mono":false},{"key":"D","text":"carcar","mono":false}],"answer":"A","topic":"数据类型","explanation":"字符串和整数不能直接相加，会抛出 TypeError（题库把它归为语法/类型错误）。"},{"id":"s17","type":"single","no":17,"stem":"语句 x = 3 == 3, 5 执行结束后，变量 x 的值为（ ）。","stemCode":"","options":[{"key":"A","text":"(3, 5)","mono":false},{"key":"B","text":"3","mono":false},{"key":"C","text":"(True, 5)","mono":false},{"key":"D","text":"5","mono":false}],"answer":"C","topic":"数据类型","explanation":"逗号表达式先算 3 == 3 得 True，再与 5 组成元组 (True, 5)。"},{"id":"s18","type":"single","no":18,"stem":"Python 中，不等号正确书写是（ ）。","stemCode":"","options":[{"key":"A","text":"≠","mono":false},{"key":"B","text":"\u003c>","mono":false},{"key":"C","text":"!=","mono":true},{"key":"D","text":"?=","mono":true}],"answer":"C","topic":"数据类型","explanation":"Python 的不等号写作 !=，不支持 \u003c> 和 ≠。"},{"id":"s19","type":"single","no":19,"stem":"a 与 b 定义如下，下列哪个选项是正确的（ ）。","stemCode":"","options":[{"key":"A","text":"a != b","mono":true},{"key":"B","text":"a is b","mono":false},{"key":"C","text":"a == 123","mono":true},{"key":"D","text":"a + b = 246","mono":true}],"answer":"B","topic":"数据类型","explanation":"原题缺少 a、b 的定义；按答案 B 推断二者引用同一对象，所以 a is b 为 True。"},{"id":"s20","type":"single","no":20,"stem":"在 Python3 中，下列程序运行结果说明正确的是（ ）。","stemCode":"strs = 'abcd12efg'\nprint(strs.upper().title())","options":[{"key":"A","text":"'ABCD12EFG'","mono":false},{"key":"B","text":"'Abc12efg'","mono":false},{"key":"C","text":"语法错误","mono":false},{"key":"D","text":"'Abcd12Efg'","mono":false}],"answer":"D","topic":"数据类型","explanation":"upper() 先把字符串变成 ABCD12EFG，title() 再把每个单词首字母大写、其余小写，得到 Abcd12Efg。"},{"id":"s21","type":"single","no":21,"stem":"执行以下三条 Python 语句，x、y 的值分别为（ ）。","stemCode":"x = 7\ny = 8\nx = y\nprint('x=%d, y=%d' % (x, y))","options":[{"key":"A","text":"x=7, y=7","mono":true},{"key":"B","text":"x=8, y=8","mono":true},{"key":"C","text":"x=7, y=8","mono":true},{"key":"D","text":"x=8, y=7","mono":true}],"answer":"B","topic":"语言基础","explanation":"x = y 让 x 与 y 都指向整数 8，所以输出 x=8, y=8。"},{"id":"s22","type":"single","no":22,"stem":"执行以下三条 Python 语句，x、y 的值分别为（ ）。","stemCode":"x = 7\ny = 8\nx, y = y, x\nprint('x=%d, y=%d' % (x, y))","options":[{"key":"A","text":"x=7, y=7","mono":true},{"key":"B","text":"x=8, y=8","mono":true},{"key":"C","text":"x=7, y=8","mono":true},{"key":"D","text":"x=8, y=7","mono":true}],"answer":"D","topic":"语言基础","explanation":"x, y = y, x 是元组打包/解包，完成交换，所以 x=8, y=7。"},{"id":"s23","type":"single","no":23,"stem":"下列程序运行结果为（ ）。","stemCode":"lists = [1, 1, 2, 3, 4, 5, 6]\nlists.remove(1)\nlists.extend([7,8,9])\nprint(lists)","options":[{"key":"A","text":"[2, 3, 4, 5, 6]","mono":true},{"key":"B","text":"[1, 2, 3, 4, 5, 6, [7, 8, 9]]","mono":true},{"key":"C","text":"[1, 2, 3, 4, 5, 6, 7, 8, 9]","mono":true},{"key":"D","text":"[2, 3, 4, 5, 6, 7, 8, 9]","mono":true}],"answer":"C","topic":"列表与元组","explanation":"remove(1) 只删除第一个 1；extend 把 7、8、9 逐个追加，结果为 [1,2,3,4,5,6,7,8,9]。"},{"id":"s24","type":"single","no":24,"stem":"列表 lis = [1, 2, 3, 4, 5, 6]，其切片 lis[-1:1:-1] 结果为（ ）。","stemCode":"","options":[{"key":"A","text":"[6, 5]","mono":true},{"key":"B","text":"[1, 2]","mono":true},{"key":"C","text":"[1, 2, 3, 4]","mono":true},{"key":"D","text":"[6, 5, 4, 3]","mono":true}],"answer":"D","topic":"列表与元组","explanation":"lis[-1:1:-1] 从索引 5 开始、到索引 1（不含）结束，步长 -1，取到 6、5、4、3。"},{"id":"s25","type":"single","no":25,"stem":"下列程序打印结果为（ ）。","stemCode":"nl = [1,2,5,3,5]\nnl.append(4)\nnl.insert(0,7)\nnl.sort()\nprint(nl)","options":[{"key":"A","text":"[1, 2, 3, 4, 5, 5, 7]","mono":true},{"key":"B","text":"[0, 1, 2, 3, 4, 5, 5]","mono":true},{"key":"C","text":"[1, 2, 3, 4, 5, 7]","mono":true},{"key":"D","text":"[7, 5, 4, 3, 2, 1]","mono":true}],"answer":"A","topic":"列表与元组","explanation":"append(4) 后为 [1,2,5,3,5,4]；insert(0,7) 把 7 放到最前；sort() 升序得到 [1,2,3,4,5,5,7]。"},{"id":"s26","type":"single","no":26,"stem":"下面程序运行结果为（ ）。","stemCode":"for i in range(5):\n    i += 1\n    print(\"-------\")\n    if i == 3:\n        continue\n    print(i)","options":[{"key":"A","text":"------- 1 ------- 2 ------- ------- 4 ------- 5","mono":false},{"key":"B","text":"------- 1 ------- 2","mono":false},{"key":"C","text":"------- 1 ------- 2 ------- 3","mono":false},{"key":"D","text":"------- 1 ------- 2 ------- 4 ------- 5","mono":false}],"answer":"A","topic":"流程控制","explanation":"i 从 0 开始，每轮先加 1；i 为 3 时 continue 跳过 print(i)，所以输出 1、2、4、5，3 被跳过。"},{"id":"s27","type":"single","no":27,"stem":"在 Python3 中，下列程序运行结果为（ ）。","stemCode":"dicts = {}\ndicts[(1, 2)] = ({3, (4, 5)})\nprint(dicts)","options":[{"key":"A","text":"报错","mono":false},{"key":"B","text":"{(1, 2): {(4, 5), 3}}","mono":true},{"key":"C","text":"{(1, 2): [(4, 5), 3]}","mono":true},{"key":"D","text":"{(1, 2): [3, 4, 5]}","mono":true}],"answer":"B","topic":"字典与集合","explanation":"元组可作为字典键，集合可作为值；输出 {(1, 2): {(4, 5), 3}}（集合元素顺序可能不同）。"},{"id":"s28","type":"single","no":28,"stem":"在 Python3 中，下列程序结果为（ ）。","stemCode":"dicts = {'a': 1, 'b': 2, 'c': 3}\nprint(dicts.pop())","options":[{"key":"A","text":"{'c': 3}","mono":true},{"key":"B","text":"报错","mono":false},{"key":"C","text":"3","mono":false},{"key":"D","text":"('c': 3)","mono":false}],"answer":"B","topic":"字典与集合","explanation":"dict.pop() 必须提供键，缺省调用会抛 TypeError。"},{"id":"s29","type":"single","no":29,"stem":"字典中一个元素由（ ）组成。","stemCode":"","options":[{"key":"A","text":"键","mono":false},{"key":"B","text":"值","mono":false},{"key":"C","text":"键值对","mono":false},{"key":"D","text":"字母","mono":false}],"answer":"C","topic":"字典与集合","explanation":"字典的每个元素都是一个“键: 值”对。"},{"id":"s30","type":"single","no":30,"stem":"下列关键字中，用来引入模块的是（ ）。","stemCode":"","options":[{"key":"A","text":"include","mono":false},{"key":"B","text":"from","mono":false},{"key":"C","text":"import","mono":false},{"key":"D","text":"continue","mono":false}],"answer":"C","topic":"模块与文件","explanation":"import 用来引入模块；from 通常与 import 搭配使用。"},{"id":"s31","type":"single","no":31,"stem":"Python 标准库的（ ）模块包含许多可用于数学计算的函数。","stemCode":"","options":[{"key":"A","text":"math","mono":false},{"key":"B","text":"string","mono":false},{"key":"C","text":"random","mono":false},{"key":"D","text":"number","mono":false}],"answer":"A","topic":"模块与文件","explanation":"math 模块提供 sqrt、sin、pi 等数学函数。"},{"id":"s32","type":"single","no":32,"stem":"Python 中，哪个选项是 random 库中用于生成随机小数的函数（ ）。","stemCode":"","options":[{"key":"A","text":"randrange()","mono":true},{"key":"B","text":"randint()","mono":false},{"key":"C","text":"getrandbits()","mono":false},{"key":"D","text":"random()","mono":false}],"answer":"D","topic":"模块与文件","explanation":"random.random() 返回 [0, 1) 之间的小数；randrange/randint 返回整数，getrandbits 返回指定位数的整数。"},{"id":"s33","type":"single","no":33,"stem":"Python 语言的输入函数是（ ）。","stemCode":"","options":[{"key":"A","text":"printf()","mono":false},{"key":"B","text":"print()","mono":true},{"key":"C","text":"input()","mono":false},{"key":"D","text":"format()","mono":false}],"answer":"C","topic":"语言基础","explanation":"input() 负责从键盘读入字符串。"},{"id":"s34","type":"single","no":34,"stem":"Python 语言的输出函数是（ ）。","stemCode":"","options":[{"key":"A","text":"printf()","mono":false},{"key":"B","text":"print()","mono":true},{"key":"C","text":"input()","mono":false},{"key":"D","text":"format()","mono":false}],"answer":"B","topic":"语言基础","explanation":"print() 负责把内容输出到屏幕。"},{"id":"s35","type":"single","no":35,"stem":"某程序按「大于等于 85 分为优秀，60 分及以上为及格，其余为不及格」输出成绩等级，当输入60 时，输出结果是（ ）。","stemCode":"","options":[{"key":"A","text":"优秀","mono":false},{"key":"B","text":"及格","mono":false},{"key":"C","text":"不及格","mono":false},{"key":"D","text":"没有任何输出","mono":false}],"answer":"B","topic":"流程控制","explanation":"60 满足“60 分及以上”，但不满足 85 分及以上，所以等级为及格。"},{"id":"s36","type":"single","no":36,"stem":"某地居民年度电费按阶梯电价分段计价：2880 度以内部分 0.4883 元/度，超过 2880 度至 4800度的部分 0.5383 元/度，超过 4800 度的部分 0.7883 元/度。全年用电 3000 度，应交电费为（ ）。","stemCode":"","options":[{"key":"A","text":"1406.30 元","mono":false},{"key":"B","text":"1470.90 元","mono":false},{"key":"C","text":"1614.90 元","mono":false},{"key":"D","text":"1464.90 元","mono":false}],"answer":"B","topic":"综合编程","explanation":"2880×0.4883 + (3000−2880)×0.5383 = 1406.304 + 64.596 = 1470.90 元。"},{"id":"s37","type":"single","no":37,"stem":"要打印一个直角边为 5 的等腰直角三角形（第 1 行 1 个星号，第 5 行 5 个星号），下列循环写法正确的是（ ）。","stemCode":"","options":[{"key":"A","text":"for i in range(5): print(\"*\" * i)","mono":true},{"key":"B","text":"for i in range(1, 6): print(\"*\" * i)","mono":true},{"key":"C","text":"for i in range(1, 5): print(\"*\" * i)","mono":true},{"key":"D","text":"for i in range(5, 1): print(\"*\" * i)","mono":true}],"answer":"B","topic":"流程控制","explanation":"range(1, 6) 产生 1~5，第 i 行打印 i 个星号，正好形成直角边为 5 的直角三角形。"},{"id":"s38","type":"single","no":38,"stem":"登录程序只给 5 次输入机会，用户名和密码正确时应立即结束循环并提示登录成功，此时应使用的关键字是（ ）。","stemCode":"","options":[{"key":"A","text":"break","mono":false},{"key":"B","text":"continue","mono":false},{"key":"C","text":"pass","mono":false},{"key":"D","text":"return","mono":false}],"answer":"A","topic":"流程控制","explanation":"登录成功后要立即结束整个循环，应使用 break。"},{"id":"s39","type":"single","no":39,"stem":"把 1 到 1000 之间（含 1000）所有 5 的倍数累加，结果是（ ）。","stemCode":"","options":[{"key":"A","text":"50250","mono":false},{"key":"B","text":"100000","mono":false},{"key":"C","text":"100500","mono":false},{"key":"D","text":"500500","mono":false}],"answer":"C","topic":"流程控制","explanation":"5+10+…+1000 = 5×(1+2+…+200) = 5×20100 = 100500。"},{"id":"s40","type":"single","no":40,"stem":"计算 1! + 2! + … + 20!，结果是一个 19 位整数 2561327494111820313。要让程序输出精确值而不丢失末位，累加结果应使用的类型是（ ）。","stemCode":"","options":[{"key":"A","text":"float","mono":false},{"key":"B","text":"int","mono":false},{"key":"C","text":"str","mono":false},{"key":"D","text":"complex","mono":false}],"answer":"B","topic":"数据类型","explanation":"float 只有约 15~17 位有效数字，19 位大整数必须用 int 才能精确表示。"},{"id":"s41","type":"single","no":41,"stem":"下列递归函数的调用 fact(5) 的返回值是（ ）。","stemCode":"def fact(n):\n    if n == 1:\n        return 1\n    return n * fact(n - 1)\n\nprint(fact(5))","options":[{"key":"A","text":"5","mono":false},{"key":"B","text":"24","mono":false},{"key":"C","text":"120","mono":false},{"key":"D","text":"720","mono":false}],"answer":"C","topic":"函数与递归","explanation":"fact(5) = 5×4×3×2×1 = 120。"},{"id":"s42","type":"single","no":42,"stem":"下列函数在参数为 90 时的返回值是（ ）。","stemCode":"def grade(score):\n    if score >= 90:\n        return \"A\"\n    elif score >= 75:\n        return \"B\"\n    elif score >= 60:\n        return \"C\"\n    return \"D\"","options":[{"key":"A","text":"A","mono":false},{"key":"B","text":"B","mono":false},{"key":"C","text":"C","mono":false},{"key":"D","text":"D","mono":false}],"answer":"A","topic":"函数与递归","explanation":"score=90 满足 score>=90，直接返回 \"A\"，后面的分支不再判断。"},{"id":"s43","type":"single","no":43,"stem":"函数 count_vowel(s) 统计字符串中元音字母（aeiouAEIOU）的个数，count_vowel(\"Python\")的返回值是（ ）。","stemCode":"","options":[{"key":"A","text":"0","mono":false},{"key":"B","text":"1","mono":false},{"key":"C","text":"2","mono":false},{"key":"D","text":"3","mono":false}],"answer":"B","topic":"函数与递归","explanation":"\"Python\" 中只有字母 o 是元音，所以返回 1。"},{"id":"s44","type":"single","no":44,"stem":"把两个列表合并、去重并按升序排列，下列表达式中能得到正确结果的是（ ）。","stemCode":"list1 = [\"M\", \"A\", \"C\"]\nlist2 = [\"X\", \"A\", \"D\"]","options":[{"key":"A","text":"sorted(list1 + list2)","mono":false},{"key":"B","text":"list1 + list2","mono":false},{"key":"C","text":"sorted(set(list1 + list2))","mono":false},{"key":"D","text":"set(list1) - set(list2)","mono":false}],"answer":"C","topic":"列表与元组","explanation":"set 去重，sorted 升序；sorted(set(list1 + list2)) 得到合并、去重、排序后的列表。"},{"id":"s45","type":"single","no":45,"stem":"已知两个集合，要找出既选修了足球又选修了篮球的学生，应使用的运算符是（ ）。","stemCode":"football = {\"王林\", \"曾牛\", \"韩立\"}\nbasketball = {\"王林\", \"韩立\", \"张铁\"}","options":[{"key":"A","text":"|","mono":false},{"key":"B","text":"&","mono":false},{"key":"C","text":"-","mono":false},{"key":"D","text":"^","mono":false}],"answer":"B","topic":"字典与集合","explanation":"交集用 &，得到同时出现在两个集合中的学生。"},{"id":"s46","type":"single","no":46,"stem":"语句 for i in range(1, 5) 控制的循环体一共执行（ ）次。","stemCode":"","options":[{"key":"A","text":"3 次","mono":false},{"key":"B","text":"4 次","mono":false},{"key":"C","text":"5 次","mono":false},{"key":"D","text":"1 次","mono":false}],"answer":"B","topic":"流程控制","explanation":"range(1, 5) 生成 1、2、3、4，循环体执行 4 次。"},{"id":"s47","type":"single","no":47,"stem":"下列程序运行后的输出是（ ）。","stemCode":"x = 90\nif x >= 60:\n    print(\"及格\")\nelif x >= 85:\n    print(\"优秀\")","options":[{"key":"A","text":"及格","mono":false},{"key":"B","text":"优秀","mono":false},{"key":"C","text":"及格优秀","mono":false},{"key":"D","text":"什么也不输出","mono":false}],"answer":"A","topic":"流程控制","explanation":"x=90 满足第一个 if，elif 不再判断，所以只输出“及格”。"},{"id":"s48","type":"single","no":48,"stem":"下列程序的输出是（ ）。","stemCode":"i = 1\nwhile i \u003c= 3:\n    i += 1\nprint(i)","options":[{"key":"A","text":"1","mono":false},{"key":"B","text":"3","mono":false},{"key":"C","text":"4","mono":false},{"key":"D","text":"0","mono":false}],"answer":"C","topic":"流程控制","explanation":"i 从 1 开始，每次加 1，直到 i=4 时循环结束，随后打印 4。"},{"id":"s49","type":"single","no":49,"stem":"下列列表推导式的结果是（ ）。","stemCode":"result = [i * i for i in range(1, 6) if i % 2 == 0]\nprint(result)","options":[{"key":"A","text":"[1, 4, 9, 16, 25]","mono":true},{"key":"B","text":"[4, 16]","mono":true},{"key":"C","text":"[4, 16, 36]","mono":true},{"key":"D","text":"[2, 4]","mono":true}],"answer":"B","topic":"列表与元组","explanation":"1~5 中的偶数是 2、4，平方后得到 [4, 16]。"},{"id":"j1","type":"judge","no":1,"stem":"Python 是解释性语言，变量类型可变，类似 JavaScript。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"语言基础","explanation":"Python 是解释型语言，变量类型在运行时确定，可以重新绑定为其他类型。"},{"id":"j2","type":"judge","no":2,"stem":"Python 是一种高级动态、完全面向对象的语言。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"语言基础","explanation":"Python 是高级、动态类型语言，支持面向对象编程。"},{"id":"j3","type":"judge","no":3,"stem":"Python 中没有 switch 语句。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"语言基础","explanation":"Python 没有 switch 语句，多分支通常用 if-elif-else；3.10+ 可用 match。"},{"id":"j4","type":"judge","no":4,"stem":"Python 的变量在使用前需要进行数据类型的声明。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"错误","topic":"语言基础","explanation":"Python 变量不需要提前声明类型，赋值时自动确定。"},{"id":"j5","type":"judge","no":5,"stem":"Python 中有 char 数据类型。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"错误","topic":"数据类型","explanation":"Python 没有 char 类型，单个字符也是 str。"},{"id":"j6","type":"judge","no":6,"stem":"3 + 4j 不是合法的 Python 表达式。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"错误","topic":"数据类型","explanation":"3+4j 是合法的复数（complex）字面量。"},{"id":"j7","type":"judge","no":7,"stem":"表达式 type({}) == set 的值为 True。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"错误","topic":"字典与集合","explanation":"{} 创建的是空字典，type({}) == dict，不是 set。"},{"id":"j8","type":"judge","no":8,"stem":"Python 列表、元组、字符串都属于有序序列。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"数据类型","explanation":"列表、元组、字符串都支持下标和切片，属于有序序列。"},{"id":"j9","type":"judge","no":9,"stem":"Python 列表中所有元素必须为相同类型的数据。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"错误","topic":"列表与元组","explanation":"列表元素可以是任意类型，允许混合存放。"},{"id":"j10","type":"judge","no":10,"stem":"列表可以作为字典的「键」。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"错误","topic":"字典与集合","explanation":"列表可变、不可哈希，不能作为字典的键。"},{"id":"j11","type":"judge","no":11,"stem":"字典的「键」必须是可变的。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"错误","topic":"字典与集合","explanation":"字典的键必须可哈希，通常要求不可变，而不是可变。"},{"id":"j12","type":"judge","no":12,"stem":"字典的「键」必须是不可变的。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"字典与集合","explanation":"不可变对象（如数字、字符串、元组）才可哈希，才能作字典键。"},{"id":"j13","type":"judge","no":13,"stem":"已知 x = 3，那么赋值语句 x = 'abcedfg' 是无法正常执行的。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"错误","topic":"语言基础","explanation":"Python 变量可以重新绑定任意类型，x = 'abcedfg' 能正常执行。"},{"id":"j14","type":"judge","no":14,"stem":"创建列表，可以直接使用 [ ]，或者用指明类型法 list[ ]。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"错误","topic":"列表与元组","explanation":"创建列表用 [] 或 list()；list[] 不是合法调用语法。"},{"id":"j15","type":"judge","no":15,"stem":"表达式 [1, 2] * 2 的值为 [1, 2, 1, 2]。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"列表与元组","explanation":"[1, 2] * 2 表示把列表重复两次，结果为 [1, 2, 1, 2]。"},{"id":"j16","type":"judge","no":16,"stem":"对于列表而言，在尾部追加元素比在中间位置插入元素速度更快一些，尤其是对于包含大量元素的列表。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"列表与元组","explanation":"尾部 append 均摊 O(1)；中间插入需要移动后续元素，平均 O(n)。"},{"id":"j17","type":"judge","no":17,"stem":"print(\"Lily{} ,a {}\".format('is', 'girl')) 的结果为：Lily is ,a girl。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"错误","topic":"数据类型","explanation":"format 会按顺序填充，但 {} 前没有空格，实际结果是 Lilyis ,a girl。"},{"id":"j18","type":"judge","no":18,"stem":"break 语句跳出 for 或者 while 循环；continue 语句用来结束当前当次循环。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"流程控制","explanation":"break 结束整个循环；continue 只结束本次循环，进入下一次。"},{"id":"j19","type":"judge","no":19,"stem":"函数中的 return 语句一定能够得到执行。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"错误","topic":"函数与递归","explanation":"如果 return 写在条件分支里，条件不成立时就不会执行。"},{"id":"j20","type":"judge","no":20,"stem":"Python 中的函数不可以返回多个值。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"错误","topic":"函数与递归","explanation":"Python 函数可以通过 return a, b 返回元组，实现“返回多个值”。"},{"id":"j21","type":"judge","no":21,"stem":"默认参数只能出现在参数列表的最后，其后面不能出现非默认参数。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"函数与递归","explanation":"默认参数必须放在非默认参数之后，否则语法错误。"},{"id":"j22","type":"judge","no":22,"stem":"Python 表达式 5 + 5//3 + True + False 的值为 7。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"数据类型","explanation":"5 + 5//3 + True + False = 5 + 1 + 1 + 0 = 7。"},{"id":"j23","type":"judge","no":23,"stem":"在引用模块时要加 \".py\"，应该写成 import myModule.py。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"错误","topic":"模块与文件","explanation":"import 后写模块名，不能带 .py 扩展名。"},{"id":"j24","type":"judge","no":24,"stem":"引用模块的函数时要写模块名称与函数名称，用「.」连接，例如 myModule.myMin。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"模块与文件","explanation":"调用模块中的函数写作 模块名.函数名，例如 myModule.myMin。"},{"id":"j25","type":"judge","no":25,"stem":"Python 中的类可以多重继承。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"语言基础","explanation":"Python 支持多重继承，一个类可以继承多个父类。"},{"id":"j26","type":"judge","no":26,"stem":"成绩等级程序用 if-elif-else 实现，85 分及以上为优秀，输入 85 时输出「优秀」。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"流程控制","explanation":"85 满足“85 分及以上”，输出“优秀”。"},{"id":"j27","type":"judge","no":27,"stem":"阶梯电价中，第二档的 0.5383 元/度应按全部用电量计算，而不是只计算超出 2880 度的部分。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"错误","topic":"流程控制","explanation":"阶梯电价分段计价，第二档单价只适用于超出 2880 度的部分。"},{"id":"j28","type":"judge","no":28,"stem":"打印直角边为 n 的等腰直角三角形时，内层循环可直接用 print(\"*\" * i) 实现。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"流程控制","explanation":"print(\"*\" * i) 一次输出 i 个星号，可以替代内层循环。"},{"id":"j29","type":"judge","no":29,"stem":"限制 5 次登录机会的程序中，用户名和密码输入正确后应使用 break 结束循环。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"流程控制","explanation":"输入正确后应立即 break，结束整个登录循环。"},{"id":"j30","type":"judge","no":30,"stem":"1 到 1000 之间（含 1000）能被 5 整除的整数共有 200 个。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"流程控制","explanation":"1000 ÷ 5 = 200，所以 1~1000 中 5 的倍数有 200 个。"},{"id":"j31","type":"judge","no":31,"stem":"1! + 2! + … + 20! 的结果 2561327494111820313 可以用 float 类型精确表示。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"错误","topic":"数据类型","explanation":"float 的精度不足以精确表示 19 位整数，末位会丢失。"},{"id":"j32","type":"judge","no":32,"stem":"用递归求阶乘时必须给出终止条件（如 n == 1 时返回 1），否则会无限递归。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"函数与递归","explanation":"递归必须有终止条件，否则会不断调用自身直到栈溢出。"},{"id":"j33","type":"judge","no":33,"stem":"函数体内没有 return 语句时，调用该函数的表达式的值为 None。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"函数与递归","explanation":"函数没有 return 或 return 后无值，调用结果都是 None。"},{"id":"j34","type":"judge","no":34,"stem":"使用 list(set(list1 + list2)) 可以完成列表合并去重，但元素的原有顺序不能保持。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"列表与元组","explanation":"set 无序，list(set(...)) 只能去重，不能保证保持原顺序。"},{"id":"j35","type":"judge","no":35,"stem":"字典的 values() 方法返回的是列表，可以直接用下标取值。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"错误","topic":"字典与集合","explanation":"values() 返回 dict_values 视图，不是列表，不能直接下标访问。"},{"id":"j36","type":"judge","no":36,"stem":"表达式 {1, 2} & {2, 3} 的结果是 {2}。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"字典与集合","explanation":"{1, 2} & {2, 3} 取交集，结果为 {2}。"},{"id":"j37","type":"judge","no":37,"stem":"if-elif-else 结构中，只要 if 的条件成立，后面的 elif 分支仍会依次判断并可能执行。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"错误","topic":"流程控制","explanation":"if 条件成立后，整个 if-elif-else 语句结束，后续 elif 不再判断。"},{"id":"j38","type":"judge","no":38,"stem":"while 循环中如果忘记改变循环变量的值，可能造成死循环。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"流程控制","explanation":"while 循环若忘记更新循环变量，条件可能永远为真，造成死循环。"},{"id":"j39","type":"judge","no":39,"stem":"range(1, 10, 2) 生成的序列是 1、3、5、7、9，共 5 个数。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"正确","topic":"流程控制","explanation":"range(1, 10, 2) 生成 1、3、5、7、9，共 5 个数。"},{"id":"j40","type":"judge","no":40,"stem":"列表的 append() 方法一次可以把多个元素追加到列表末尾。","stemCode":"","options":[{"key":"A","text":"正确","mono":false},{"key":"B","text":"错误","mono":false}],"answer":"错误","topic":"列表与元组","explanation":"append() 一次只追加一个对象；追加多个元素应使用 extend()。"},{"id":"f1","type":"fill","no":1,"stem":"Python 使用 ______ 符号标示单行注释。","stemCode":"","options":[],"answer":"#","accept":["#"],"topic":"语言基础","explanation":"#"},{"id":"f2","type":"fill","no":2,"stem":"Python 使用 ______ 符号标示注释；以 ______ 划分语句块。","stemCode":"","options":[],"answer":"# ；缩进","accept":["#；缩进","#;缩进"],"topic":"语言基础","explanation":"# 用于注释；Python 用缩进划分语句块。"},{"id":"f3","type":"fill","no":3,"stem":"多行注释语句使用连续 ______ 对来注释多行。","stemCode":"","options":[],"answer":"三个单引号（''' 或 \"\"\"）","accept":["三个单引号","'''","\"\"\""],"topic":"语言基础","explanation":"三个连续单引号（或三个双引号）可包住多行内容。"},{"id":"f4","type":"fill","no":4,"stem":"在 Python 中，用于循环的关键字是 ______、______。","stemCode":"","options":[],"answer":"for ； while","accept":["for；while","for;while","for while"],"topic":"流程控制","explanation":"Python 的循环关键字是 for 和 while。"},{"id":"f5","type":"fill","no":5,"stem":"通过键盘输入的函数为 ______。","stemCode":"","options":[],"answer":"input()","accept":["input()","input"],"topic":"语言基础","explanation":"input() 从键盘读入字符串。"},{"id":"f6","type":"fill","no":6,"stem":"通过键盘输出的函数为：______。","stemCode":"","options":[],"answer":"print()","accept":["print()","print"],"topic":"语言基础","explanation":"print() 把内容输出到屏幕。"},{"id":"f7","type":"fill","no":7,"stem":"一个字节等于 ______ 位。","stemCode":"","options":[],"answer":"8","accept":["8"],"topic":"语言基础","explanation":"1 字节 = 8 位。"},{"id":"f8","type":"fill","no":8,"stem":"Python 逻辑常量有逻辑常量 True 和 ______。","stemCode":"","options":[],"answer":"False","accept":["False","false"],"topic":"语言基础","explanation":"Python 的逻辑常量是 True 和 False。"},{"id":"f9","type":"fill","no":9,"stem":"字符串 s 转整数 i 的语句：______。","stemCode":"","options":[],"answer":"i = int(s)","accept":["i = int(s)","i=int(s)"],"topic":"数据类型","explanation":"int(s) 把字符串转换为整数，写作 i = int(s)。"},{"id":"f10","type":"fill","no":10,"stem":"字符串 s 转浮点数 f 的语句：______。","stemCode":"","options":[],"answer":"f = float(s)","accept":["f = float(s)","f=float(s)"],"topic":"数据类型","explanation":"float(s) 把字符串转换为浮点数，写作 f = float(s)。"},{"id":"f11","type":"fill","no":11,"stem":"浮点数 f 转字符串 s 的语句：______。","stemCode":"","options":[],"answer":"s = str(f)","accept":["s = str(f)","s=str(f)"],"topic":"数据类型","explanation":"str(f) 把浮点数转换为字符串，写作 s = str(f)。"},{"id":"f12","type":"fill","no":12,"stem":"表达式 type({}) == set 的值为 ______。","stemCode":"","options":[],"answer":"False","accept":["False","false"],"topic":"字典与集合","explanation":"{} 是空字典，type({}) 为 dict，所以与 set 比较为 False。"},{"id":"f13","type":"fill","no":13,"stem":"Python 表达式 1/4 + 2.75 的值为 ______。","stemCode":"","options":[],"answer":"3.0","accept":["3.0","3"],"topic":"数据类型","explanation":"1/4 = 0.25，再加 2.75 得 3.0。"},{"id":"f14","type":"fill","no":14,"stem":"在 Python 中，用 ______ 来获取字符串长度。","stemCode":"","options":[],"answer":"len()","accept":["len()","len"],"topic":"数据类型","explanation":"len() 返回字符串长度。"},{"id":"f15","type":"fill","no":15,"stem":"len(\"我们abc\") 值为 ______。","stemCode":"","options":[],"answer":"5","accept":["5"],"topic":"数据类型","explanation":"\"我们abc\" 含 2 个汉字和 3 个字母，共 5 个字符。"},{"id":"f16","type":"fill","no":16,"stem":"字符串转小写函数是：______。","stemCode":"","options":[],"answer":"str.lower()（或 s.lower()）","accept":["str.lower()","s.lower()","lower()"],"topic":"数据类型","explanation":"str.lower()（或 s.lower()）把字符串转换为小写。"},{"id":"f17","type":"fill","no":17,"stem":"使用 ______ 方法来添加列表项。","stemCode":"","options":[],"answer":"append()","accept":["append()","append"],"topic":"列表与元组","explanation":"append() 在列表末尾追加一个元素。"},{"id":"f18","type":"fill","no":18,"stem":"表达式 (1,) + (2,) 的值为 ______，表达式 (1) + (2) 的值为 ______。","stemCode":"","options":[],"answer":"(1, 2) ； 3","accept":["(1, 2)；3","(1,2)；3","(1,2);3","(1, 2);3"],"topic":"列表与元组","explanation":"(1,) + (2,) 是元组拼接得 (1, 2)；(1) + (2) 是整数相加得 3。"},{"id":"f19","type":"fill","no":19,"stem":"已知 x = ([1], [2])，那么执行语句 x[0].append(3) 后 x 的值为 ______。","stemCode":"","options":[],"answer":"([1, 3], [2])","accept":["([1, 3], [2])","([1,3],[2])"],"topic":"列表与元组","explanation":"元组本身不可变，但其中的列表可变，x[0].append(3) 后为 ([1, 3], [2])。"},{"id":"f20","type":"fill","no":20,"stem":"写出命题「x 小于等于 y，或大于 z」的 Python 表达式：______。","stemCode":"","options":[],"answer":"x \u003c= y or x > z","accept":["x \u003c= y or x > z","x\u003c=y or x>z"],"topic":"数据类型","explanation":"“x 小于等于 y，或大于 z”写作 x \u003c= y or x > z。"},{"id":"f21","type":"fill","no":21,"stem":"判断一个字母 c 是否为小写字母 ______。","stemCode":"","options":[],"answer":"c >= 'a' and c \u003c= 'z'（或写作 'a' \u003c= c \u003c= 'z'）","accept":["'a' \u003c= c \u003c= 'z'","c >= 'a' and c \u003c= 'z'","c>='a' and c\u003c='z'"],"topic":"数据类型","explanation":"可写作 'a' \u003c= c \u003c= 'z'，也可写作 c >= 'a' and c \u003c= 'z'。"},{"id":"f22","type":"fill","no":22,"stem":"______ 是 Python 中唯一的映射类型。","stemCode":"","options":[],"answer":"字典（dict）","accept":["字典","dict","字典（dict）"],"topic":"字典与集合","explanation":"字典（dict）是 Python 唯一的映射类型。"},{"id":"f23","type":"fill","no":23,"stem":"创建一个名为 dict1 的空字典语法为：______。","stemCode":"","options":[],"answer":"dict1 = {}（或 dict1 = dict()）","accept":["dict1 = {}","dict1={}","dict1 = dict()","dict1=dict()"],"topic":"字典与集合","explanation":"空字典可写作 dict1 = {} 或 dict1 = dict()。"},{"id":"f24","type":"fill","no":24,"stem":"Python 序列类型包括 列表、______、字典 三种；______ 是 Python 中唯一的映射类型。","stemCode":"","options":[],"answer":"元组 ； 字典","accept":["元组；字典","元组;字典"],"topic":"字典与集合","explanation":"序列类型包括列表、元组、字典；其中字典是唯一的映射类型。"},{"id":"f25","type":"fill","no":25,"stem":"Python 中的可变数据类型有 ______ 和 ______。","stemCode":"","options":[],"answer":"列表 ； 字典","accept":["列表；字典","列表;字典"],"topic":"字典与集合","explanation":"列表和字典是可变类型。"},{"id":"f26","type":"fill","no":26,"stem":"dict1 = {'Name': 'Zara', 'Age': 7}，print(\"keys : \", dict1.keys()) 的输出结果是：______。","stemCode":"","options":[],"answer":"keys : dict_keys(['Name', 'Age'])","accept":["keys : dict_keys(['Name', 'Age'])","keys: dict_keys(['Name', 'Age'])"],"topic":"字典与集合","explanation":"keys() 返回 dict_keys 视图，输出为 keys : dict_keys(['Name', 'Age'])。"},{"id":"f27","type":"fill","no":27,"stem":"函数返回使用 ______ 方法。","stemCode":"","options":[],"answer":"return","accept":["return"],"topic":"函数与递归","explanation":"函数用 return 返回值。"},{"id":"f28","type":"fill","no":28,"stem":"函数内修改全局变量，使用 ______ 关键字。","stemCode":"","options":[],"answer":"global","accept":["global"],"topic":"函数与递归","explanation":"函数内修改全局变量需先用 global 声明。"},{"id":"f29","type":"fill","no":29,"stem":"readlines([读取长度]) 读取文件的 ______，直到文件末尾结束符 EOF，每一行作为一个元素，存储在返回的 ______ 中。","stemCode":"","options":[],"answer":"所有行 ； 列表","accept":["所有行；列表","所有行;列表"],"topic":"模块与文件","explanation":"readlines() 读取所有行，每行作为元素存入列表。"},{"id":"f30","type":"fill","no":30,"stem":"用 %w.pf 输出一个实数，______ 是 w，______ 占 p 位。","stemCode":"","options":[],"answer":"总宽度 ； 小数位","accept":["总宽度；小数位","总宽度;小数位"],"topic":"数据类型","explanation":"%w.pf 中 w 是总宽度，p 是小数位数。"},{"id":"f31","type":"fill","no":31,"stem":"按「85 分及以上优秀、60 分及以上及格、其余不及格」判断，成绩 75 的等级是 ______。","stemCode":"","options":[],"answer":"及格","accept":["及格"],"topic":"流程控制","explanation":"75 满足 60 分及以上、但不到 85，所以是及格。"},{"id":"f32","type":"fill","no":32,"stem":"阶梯电价中第一档为 2880 度以内、单价 0.4883 元/度，若全年恰好用电 2880 度，电费为______ 元（保留两位小数）。","stemCode":"","options":[],"answer":"1406.30","accept":["1406.30","1406.3"],"topic":"流程控制","explanation":"2880×0.4883 = 1406.304，保留两位小数为 1406.30。"},{"id":"f33","type":"fill","no":33,"stem":"百钱买百鸡问题中用 for cock in range(21) 枚举鸡翁的只数，是因为鸡翁最多 ______ 只。","stemCode":"","options":[],"answer":"20","accept":["20"],"topic":"综合编程","explanation":"鸡翁每只 5 钱，100 钱最多买 20 只，所以 range(21)。"},{"id":"f34","type":"fill","no":34,"stem":"用 1、3、5、8 四个数字组成互不相同且无重复数字的三位数，共有 ______ 个。","stemCode":"","options":[],"answer":"24","accept":["24"],"topic":"综合编程","explanation":"百位 4 种、十位 3 种、个位 2 种，共 4×3×2 = 24 个。"},{"id":"f35","type":"fill","no":35,"stem":"求 1! + 2! + … + 20! 时，用于累加总和的变量应初始化为 ______。","stemCode":"","options":[],"answer":"0","accept":["0"],"topic":"综合编程","explanation":"累加变量应初始化为 0。"},{"id":"f36","type":"fill","no":36,"stem":"打印等腰直角三角形时，若外层循环变量为 i，则第 i 行应输出 ______ 个星号。","stemCode":"","options":[],"answer":"i","accept":["i"],"topic":"流程控制","explanation":"第 i 行输出 i 个星号。"},{"id":"f37","type":"fill","no":37,"stem":"限制 5 次登录机会的程序中，用户名和密码正确后应立即用 ______ 语句结束循环。","stemCode":"","options":[],"answer":"break","accept":["break"],"topic":"流程控制","explanation":"登录成功后用 break 立即结束循环。"},{"id":"f38","type":"fill","no":38,"stem":"1 到 1000 之间（含 1000）所有 5 的倍数的和是 ______。","stemCode":"","options":[],"answer":"100500","accept":["100500"],"topic":"流程控制","explanation":"1~1000 中 5 的倍数之和为 100500。"},{"id":"f39","type":"fill","no":39,"stem":"函数按「≥90 为 A、≥75 为 B、≥60 为 C、其余为 D」返回等级，传入 75 时返回 ______。","stemCode":"","options":[],"answer":"B","accept":["B"],"topic":"函数与递归","explanation":"75 满足 >=75，返回 \"B\"。"},{"id":"f40","type":"fill","no":40,"stem":"递归求阶乘时，f(n) 与 f(n-1) 的递推关系写作 f(n) = ______。","stemCode":"","options":[],"answer":"n * f(n - 1)","accept":["n * f(n - 1)","n*f(n-1)"],"topic":"函数与递归","explanation":"阶乘的递归关系为 f(n) = n * f(n - 1)。"},{"id":"f41","type":"fill","no":41,"stem":"统计班级平均分后逐个判断每人成绩高于还是低于平均分，应使用 ______ 循环遍历成绩列表。","stemCode":"","options":[],"answer":"for","accept":["for"],"topic":"流程控制","explanation":"遍历成绩列表应使用 for 循环。"},{"id":"f42","type":"fill","no":42,"stem":"表达式 sorted(set([3, 1, 3, 2])) 的值为 ______。","stemCode":"","options":[],"answer":"[1, 2, 3]","accept":["[1, 2, 3]","[1,2,3]"],"topic":"列表与元组","explanation":"set 去重后为 {1, 2, 3}，sorted 得到 [1, 2, 3]。"},{"id":"f43","type":"fill","no":43,"stem":"已知字典 top5 存放电影与导演的对应关系，要取出全部导演，可调用 top5.______() 方法。","stemCode":"","options":[],"answer":"values","accept":["values"],"topic":"字典与集合","explanation":"values() 返回字典中全部的值（导演）。"},{"id":"f44","type":"fill","no":44,"stem":"语句 for i in range(1, 6): print(i * i) 输出的最后一个数是 ______。","stemCode":"","options":[],"answer":"25","accept":["25"],"topic":"流程控制","explanation":"1~5 的平方依次为 1、4、9、16、25，最后一个是 25。"},{"id":"f45","type":"fill","no":45,"stem":"表达式 \"level\" == \"level\"[::-1] 的值是 ______。","stemCode":"","options":[],"answer":"True","accept":["True"],"topic":"数据类型","explanation":"\"level\" 正反读相同，s[::-1] 仍为 \"level\"，所以结果为 True。"},{"id":"a1","type":"short","no":1,"stem":"集合 set 的三大特性是什么？","stemCode":"","options":[],"answer":"（1）互异性：同一个集合中不会出现重复元素，重复添加自动去重。\n（2）确定性：任一元素是否属于该集合是确定的，不存在「可能有」的情况。\n（3）无序性：元素之间没有先后顺序，不能用下标访问，每次遍历的输出顺序也可能不同。","answerCode":"","topic":"字典与集合","explanation":"要点：互异性（自动去重）、确定性（元素归属明确）、无序性（不能下标访问）。"},{"id":"a2","type":"short","no":2,"stem":"阐述循环体中 break 和 continue 语句的作用。","stemCode":"","options":[],"answer":"break：立即结束当前所在的整个循环，跳转到循环之后的语句继续执行；嵌套循环时只跳出最内层。\ncontinue：结束本次循环，跳过循环体中 continue 之后的语句，直接进入下一次循环的条件判断。","answerCode":"","topic":"流程控制","explanation":"要点：break 结束整个循环；continue 只结束本次，进入下一次。"},{"id":"a3","type":"short","no":3,"stem":"Python 有几种运算符优先级？写出优先级最高的前三个即可。","stemCode":"","options":[],"answer":"从高到低依次为：算术运算符 > 比较（关系）运算符 > 逻辑运算符 > 同一运算符（is） > 成员运算符（in） > 赋值运算符。\n其中算术运算符内部又是：** 高于 * / // %，再高于 + -。","answerCode":"","topic":"数据类型","explanation":"要点：算术 > 比较 > 逻辑 > 身份/成员 > 赋值；算术内部 ** 最高，其次 * / // %，再次 + -。"},{"id":"a4","type":"short","no":4,"stem":"元组和列表的联系与区别是什么？","stemCode":"","options":[],"answer":"联系：两者都是有序序列，都支持下标访问、切片、len()、in 判断和 for 遍历，元素允许重复且类型不限。\n区别：列表用方括号定义、可变，可增删改；元组用圆括号定义（单元素须写成 (x,)）、不可变，一旦创建不能修改元素，因而可作字典的键，访问速度与内存开销也优于列表。","answerCode":"","topic":"列表与元组","explanation":"要点：二者都是有序序列；列表可变，元组不可变、可作字典键。"},{"id":"a5","type":"short","no":5,"stem":"阐述 range(start, stop, step) 函数的三个参数。","stemCode":"","options":[],"answer":"start：计数起始值，可以省略，默认为 0。\nstop：计数结束值，产生的序列不包含 stop 本身。\nstep：步长，默认为 1，不能为 0；为负数时表示倒序。","answerCode":"","topic":"流程控制","explanation":"要点：start 默认 0，stop 不包含，step 默认 1 且不能为 0。"},{"id":"a6","type":"short","no":6,"stem":"含有默认参数和可变参数的函数定义格式是什么？","stemCode":"","options":[],"answer":"默认参数在形参名后直接写等号和默认值；可变参数在形参名前加一个星号（收集为元组）或两个星号（收集为字典）。默认参数必须排在非默认参数之后。","answerCode":"# 带默认参数的函数\ndef 函数名(参数名=默认值):\n    函数体\n\n# 带可变参数的函数（*参数 收集为元组，**参数 收集为字典）\ndef 函数名(*参数):\n    函数体","topic":"函数与递归","explanation":"要点：默认参数必须放在非默认参数之后；*args 收集为元组，**kwargs 收集为字典。"},{"id":"a7","type":"short","no":7,"stem":"写出循环模式和筛选模式的列表推导式的一般格式。","stemCode":"","options":[],"answer":"循环模式：[表达式 for 变量 in 序列或可迭代对象]\n筛选模式：[表达式 for 变量 in 序列或可迭代对象 if 条件]","answerCode":"# 循环模式：每个元素平方\nsquares = [i * i for i in range(1, 6)]\n# 结果 [1, 4, 9, 16, 25]\n\n# 筛选模式：只保留偶数\nevens = [i for i in range(1, 11) if i % 2 == 0]\n# 结果 [2, 4, 6, 8, 10]","topic":"列表与元组","explanation":"要点：循环模式不含 if；筛选模式在 for 后加 if 条件。"},{"id":"a8","type":"short","no":8,"stem":"下列程序的功能及输出结果是什么？","stemCode":"s = \"I am learning Python\"\nw = s.split(\" \")\nprint(w)","options":[],"answer":"功能：以空格为分隔符把字符串 s 切分成若干子串，返回一个列表并输出。\n输出：['I', 'am', 'learning', 'Python']","answerCode":"","topic":"数据类型","explanation":"要点：split(\" \") 按空格切分，得到 ['I', 'am', 'learning', 'Python']。"},{"id":"a9","type":"short","no":9,"stem":"s = \"abcdefghijk\"，下列四条 print 语句的输出结果分别是什么？","stemCode":"s = \"abcdefghijk\"\nprint(\"s[:2]---\", s[:2])\nprint(\"s[2,6]---\", s[2:6])\nprint(\"s[0:7:2]---\", s[0:7:2])\nprint(\"s[1:5:2]---\", s[1:5:2])","options":[],"answer":"s[:2]--- ab\ns[2,6]--- cdef\ns[0:7:2]--- aceg\ns[1:5:2]--- bd","answerCode":"","topic":"数据类型","explanation":"要点：切片含头不含尾，步长 2 表示隔一个取一个。"},{"id":"a10","type":"short","no":10,"stem":"写出这段代码执行后的结果。","stemCode":"def function1():\n    print(\"我是函数1!\")\ndef function2():\n    print(\"我是函数2!\")\n\nfunction1()\nfunction2()","options":[],"answer":"依次输出两行：我是函数1! / 我是函数2!","answerCode":"","topic":"函数与递归","explanation":"要点：先定义函数再调用，按调用顺序输出两行。"},{"id":"a11","type":"short","no":11,"stem":"if-elif-else 结构与连续写多个 if 语句在执行上有什么区别？","stemCode":"","options":[],"answer":"if-elif-else 是一条完整的语句，条件自上而下依次判断，只要某个分支成立，其余分支全部跳过，同一时刻最多只有一个分支被执行。\n连续写多个 if 是彼此独立的语句，每个条件都会被判断一次，因此可能有多个分支同时执行。\n分段判断（如成绩等级、阶梯电价）用 if-elif-else，多个互不影响的判断才用并列的 if。","answerCode":"","topic":"流程控制","explanation":"要点：if-elif-else 同一时刻最多执行一个分支；并列 if 每个条件都会判断。"},{"id":"a12","type":"short","no":12,"stem":"循环语句的 else 子句在什么情况下执行？有什么典型用法？","stemCode":"","options":[],"answer":"for 或 while 的 else 子句在循环「正常结束」后执行一次，即序列遍历完毕或循环条件变为假时执行；如果循环被 break 提前终止，则 else 不执行。\n典型用法是「查找未命中的提示」：循环体内找到目标就 break，else 中输出「没有找到」，这样不必额外设置标志变量。","answerCode":"","topic":"流程控制","explanation":"要点：循环正常结束执行 else；被 break 提前终止则不执行，常用于“未找到”提示。"},{"id":"a13","type":"short","no":13,"stem":"编程时应当如何选择 for 循环和 while 循环？","stemCode":"","options":[],"answer":"for 适合次数已知或需要遍历序列的场合，配合 range() 遍历数字区间，配合列表、字符串、字典遍历元素，循环变量由 for 自动维护。\nwhile 适合次数事先不确定、需要靠条件判断结束的场合，如限制次数的登录、猜数字、读文件直到结束，此时必须在循环体内自己更新循环变量，否则容易死循环。","answerCode":"","topic":"流程控制","explanation":"要点：次数已知或遍历序列用 for；条件驱动、次数未知用 while。"},{"id":"a14","type":"short","no":14,"stem":"用递归解决问题必须满足哪两个条件？以递归求阶乘为例说明。","stemCode":"","options":[],"answer":"第一是终止条件：问题缩小到最小时直接给出结果，如求阶乘时 if n == 1: return 1，没有它递归将无法停止。\n第二是递归表达式：把原问题转化为规模更小的同类问题，如 return n * fact(n - 1)，每次调用都让 n 减 1，逐步逼近终止条件。两者缺一，递归都不能正确结束。","answerCode":"","topic":"函数与递归","explanation":"要点：必须有终止条件和递归表达式，缺一不可。"},{"id":"a15","type":"short","no":15,"stem":"函数没有 return 语句，或者 return 后面没有跟值，调用结果是什么？判断时要注意什么？","stemCode":"","options":[],"answer":"这三种情况——没有 return、return 后不带值、执行流根本走不到 return——调用结果都是 None。\n判断返回值是否为空应当用 is None，不要写成 == 0 或 == False；另外，函数内一旦执行到return 就立即返回，后面的语句不再执行。","answerCode":"","topic":"函数与递归","explanation":"要点：没有 return 或 return 无值，结果都是 None；判断用 is None。"},{"id":"a16","type":"short","no":16,"stem":"什么是局部变量和全局变量？在函数内部修改全局变量要注意什么？","stemCode":"","options":[],"answer":"在函数体内赋值的变量是局部变量，只在本次调用期间存在，函数结束后被回收；在模块层面（函数外）定义的变量是全局变量，整个文件内都可以读取。\n函数内可以直接读取全局变量，但只要出现赋值语句，Python 就认为它是新的局部变量，此时若想修改全局变量，必须先用 global 声明，否则会引发 UnboundLocalError。","answerCode":"","topic":"函数与递归","explanation":"要点：函数内赋值得到局部变量；模块层定义的是全局变量；函数内改全局需 global。"},{"id":"a17","type":"short","no":17,"stem":"列表的 append() 与 extend() 有什么区别？请举例说明。","stemCode":"","options":[],"answer":"append() 把传入的对象当作一个整体追加到末尾，参数是列表时会形成嵌套；extend()把可迭代对象中的元素逐个取出追加，相当于把两个列表合并。\n例如 a = [1, 2]，a.append([3, 4]) 之后 a 为 [1, 2, [3, 4]]；若改为 a.extend([3, 4])，a 为 [1, 2, 3, 4]。","answerCode":"","topic":"列表与元组","explanation":"要点：append 把对象整体追加（可能嵌套）；extend 把元素逐个追加（合并）。"},{"id":"a18","type":"short","no":18,"stem":"字典取值时 d[key] 与 d.get(key) 有什么区别？","stemCode":"","options":[],"answer":"d[key] 要求键必须存在，键不存在时抛出 KeyError，程序中断。\nd.get(key) 在键不存在时返回 None，不会报错；还可以写成 d.get(key, 默认值) 指定缺省结果。查询来源不确定的数据时，应优先使用 get()。","answerCode":"","topic":"字典与集合","explanation":"要点：d[key] 缺键抛 KeyError；get 缺键返回 None 或指定默认值。"},{"id":"a19","type":"short","no":19,"stem":"集合为什么能自动去重？去重后元素顺序为什么会改变？","stemCode":"","options":[],"answer":"集合内部按元素的哈希值存放，同一个值只保留一份，因此重复元素会被自动去掉。\n也正因为按哈希值组织，元素的存放顺序与插入顺序无关，遍历时看到的顺序可能与原列表不同。\n既要保留原顺序又要去重时，需要另外记录已出现的元素，而不能直接依赖 set。","answerCode":"","topic":"字典与集合","explanation":"要点：集合按哈希存放，自动去重且无序；要保序去重需额外记录。"},{"id":"a20","type":"short","no":20,"stem":"嵌套循环中的 break 会跳出几层？如果要一次跳出多层循环可以用什么办法？","stemCode":"","options":[],"answer":"break 只终止它所在的那一层循环，内层跳出后外层循环继续执行下一轮，所以双层循环里 break 只跳出内层。\n要一次跳出多层，常用两种办法：设置一个标志变量，内层 break 后修改标志，外层据标志再break；或把循环封装成函数，满足条件时直接 return 结束整个函数。","answerCode":"","topic":"流程控制","explanation":"要点：break 只跳出本层；可用标志变量或把循环封装成函数 return 来跳出多层。"},{"id":"a21","type":"short","no":21,"stem":"列表推导式 [表达式 for 变量 in 序列 if 条件] 的执行过程是怎样的？","stemCode":"","options":[],"answer":"依次从序列中取出元素赋给变量，满足 if 条件时计算前面的表达式，把结果加入新列表，不满足则跳过。\n它等价于「新建空列表 → for 遍历 → if 判断 → append 添加」四步。例如 [i * i for i in range(1, 6) if i % 2 == 0] 等价于把 1~5 中的偶数挑出来求平方，结果为 [4, 16]。","answerCode":"","topic":"列表与元组","explanation":"要点：遍历序列 → if 筛选 → 计算表达式 → append 到新列表。"},{"id":"a22","type":"short","no":22,"stem":"列表的 sort() 方法与内置函数 sorted() 有什么区别？","stemCode":"","options":[],"answer":"list.sort() 是列表对象的方法，就地排序，返回值是 None，调用后原列表本身被改变。\nsorted() 是内置函数，返回一个新的有序列表，原数据不受影响，并且可以接收任意可迭代对象（字符串、元组、字典的键等）。需要保留原始数据时用 sorted()。","answerCode":"","topic":"列表与元组","explanation":"要点：sort 就地排序、返回 None；sorted 返回新列表、不改原数据。"},{"id":"a23","type":"short","no":23,"stem":"把列表作为函数参数的默认值会带来什么问题？应该怎样写？","stemCode":"","options":[],"answer":"默认参数的值只在函数定义时创建一次，之后每次调用都共用同一个对象。若默认值是列表、字典等可变对象，函数内对它的修改会累积到下一次调用，出现「上次的结果还在」的异常现象。\n正确写法是把默认值设为 None，在函数体内判断 if 参数 is None: 参数 = []，这样每次调用都会得到一个新的空列表。","answerCode":"","topic":"函数与递归","explanation":"要点：默认值只在定义时创建一次；可变默认值会累积修改，应改用 None 占位。"},{"id":"a24","type":"short","no":24,"stem":"判断一个字符串是否为回文有哪两种常见写法？各有什么优缺点？","stemCode":"","options":[],"answer":"第一种是切片反转后比较：s == s[::-1]，一行即可，代码最简洁，但会额外生成一个与原串等长的反转字符串，占用额外内存。\n第二种是双指针：用两个下标分别从头和尾向中间逐位比较，一旦不同立即返回 False。它不额外开辟空间，还能提前结束，处理超长字符串时更省内存。","answerCode":"","topic":"数据类型","explanation":"要点：切片反转 s[::-1] 简洁但占额外内存；双指针省内存且可提前结束。"},{"id":"a25","type":"short","no":25,"stem":"解决「累加求和」类问题的一般步骤是什么？如果求的是连乘，需要改哪里？","stemCode":"","options":[],"answer":"第一步确定累加变量并初始化为 0；第二步确定遍历范围，次数已知用 for，条件驱动用 while；第三步在循环体内把符合条件的值累加到变量上；第四步循环结束后输出结果。\n如果求的是连乘（如阶乘、累乘），只需把累加变量的初值从 0 改为 1，并把 += 改成 *=，其余步骤不变。","answerCode":"","topic":"流程控制","explanation":"要点：初始化 → 遍历 → 累加 → 输出；连乘把初值 0 改为 1，+= 改为 *=。"},{"id":"c1","type":"code","no":1,"stem":"实现分段函数求值，其中 x 从键盘输入。函数为：x ≤ 1 时 f(x) = x；1 \u003c x \u003c 10 时 f(x) = 2x − 1；x ≥ 10 时 f(x) = 3x − 11。","stemCode":"","options":[],"answer":"","answerCode":"# 1. 从键盘读入 x，转成浮点数\nx = float(input(\"请输入 x 的值：\"))\n# 2. 按三个区间分别求值\nif x \u003c= 1:\n    y = x\nelif x \u003c 10:\n    y = 2 * x - 1\nelse:\n    y = 3 * x - 11\n# 3. 输出结果\nprint(f\"f({x}) = {y}\")","topic":"综合编程","explanation":"分段函数：按 x 的三个区间用 if-elif-else 分别计算。"},{"id":"c2","type":"code","no":2,"stem":"（百钱买百鸡）鸡翁一值钱五，鸡母一值钱三，鸡雏三值钱一。百钱买百鸡，问鸡翁、鸡母、鸡雏各几何？","stemCode":"","options":[],"answer":"","answerCode":"# 1. 鸡翁最多 20 只，鸡母最多 33 只，鸡雏数由总数倒推\nfor cock in range(21):\n    for hen in range(34):\n        chick = 100 - cock - hen\n        # 2. 鸡雏必须成 3 只一组，且总价恰为 100 钱\n        if chick % 3 == 0 and 5 * cock + 3 * hen + chick // 3 == 100:\n            print(f\"鸡翁 {cock} 只，鸡母 {hen} 只，鸡雏 {chick} 只\")","topic":"综合编程","explanation":"枚举鸡翁、鸡母，鸡雏由总数倒推；同时满足鸡雏数为 3 的倍数、总价 100 钱。"},{"id":"c3","type":"code","no":3,"stem":"编写一个 new_sort() 函数，作用是输入任意三个数，按从小到大的顺序输出（不允许使用sort()、sorted() 等函数）。","stemCode":"","options":[],"answer":"","answerCode":"def new_sort(a, b, c):\n    # 1. 先保证 a ≤ b\n    if a > b:\n        a, b = b, a\n    # 2. 再保证 a ≤ c，此时 a 已成为最小值\n    if a > c:\n        a, c = c, a\n    # 3. 最后比较 b 与 c，确定中间值与最大值\n    if b > c:\n        b, c = c, b\n    return a, b, c\n# 4. 三次交换后即为升序\nprint(new_sort(3, 1, 2))","topic":"综合编程","explanation":"三次比较交换，依次保证 a≤b、a≤c、b≤c，最终得到升序。"},{"id":"c4","type":"code","no":4,"stem":"计算 s = 1 + 2 + 3 + … + n 的和，其中 n 由键盘输入。","stemCode":"","options":[],"answer":"","answerCode":"# 1. 读入 n 并转成整数\nn = int(input(\"请输入 n：\"))\n# 2. 用 while 从 1 累加到 n\ntotal = 0\ni = 1\nwhile i \u003c= n:\n    total += i\n    i += 1\n# 3. 输出结果\nprint(f\"1 到 {n} 的和为 {total}\")","topic":"综合编程","explanation":"累加器初始化为 0，用 while 从 1 加到 n。"},{"id":"c5","type":"code","no":5,"stem":"给你三个整数 a、b、c，判断能否以它们为三条边长构成三角形。若能输出 YES，否则输出 NO。","stemCode":"","options":[],"answer":"","answerCode":"# 1. 读入三条边并转成整数\na = int(input(\"请输入第一条边：\"))\nb = int(input(\"请输入第二条边：\"))\nc = int(input(\"请输入第三条边：\"))\n# 2. 排序后只需判断较短两边之和是否大于最长边\nsides = [a, b, c]\nsides.sort()\nif sides[0] + sides[1] > sides[2]:\n    print(\"YES\")\nelse:\n    print(\"NO\")","topic":"综合编程","explanation":"先排序，再判断较短两边之和是否大于最长边。"},{"id":"c6","type":"code","no":6,"stem":"定义函数 getMaxAndMin()，参数为一个成绩元组，功能是返回该元组中的最高分与最低分。","stemCode":"","options":[],"answer":"","answerCode":"def getMaxAndMin(scores):\n    # 1. 排序得到新列表，不改动调用方传入的元组\n    ordered = sorted(scores)\n    # 2. 末位为最高分，首位为最低分\n    return ordered[-1], ordered[0]\n# 3. 用一个成绩元组测试\nscore_tuple = (99, 80, 60, 82, 85)\nhighest, lowest = getMaxAndMin(score_tuple)\nprint(f\"最高分 {highest}，最低分 {lowest}\")","topic":"综合编程","explanation":"sorted() 返回新列表，取首尾即最低分和最高分。"},{"id":"c7","type":"code","no":7,"stem":"同时打开两个文件：以只读模式打开当前目录下已存在的文件 demo.txt，以写模式打开当前目录下的文件 demo.out，然后从 demo.txt 中读入内容，把每行的内容依次写入 demo.out，最后关闭两个文件。","stemCode":"","options":[],"answer":"","answerCode":"# 1. 同时打开源文件与目标文件，with 结束时自动关闭\nwith open(\"demo.txt\", \"r\", encoding=\"utf-8\") as src, \\\n        open(\"demo.out\", \"w\", encoding=\"utf-8\") as dst:\n    # 2. 逐行读出并写入目标文件\n    for line in src:\n        dst.write(line)\nprint(\"复制完成\")","topic":"综合编程","explanation":"用 with 同时打开源文件和目标文件，逐行读出并写入。"},{"id":"c8","type":"code","no":8,"stem":"设计一个简单的国家和首都查询系统，实现国家和首都之间的对应关系查找。","stemCode":"","options":[],"answer":"","answerCode":"# 1. 用字典保存国家与首都的对应关系\ncounty_capital_dict = {\"中国\": \"北京\", \"西班牙\": \"马德里\", \"德国\": \"柏林\"}\n# 2. 读入待查询的关键字\nkey = input(\"请输入想要查询的国家或首都：\")\n# 3. 先按国家查首都，再按首都反查国家\nif key in county_capital_dict.keys():\n    print(f'您输入的国家\"{key}\"对应的首都为：{county_capital_dict[key]}')\nelif key in county_capital_dict.values():\n    country_list = [country for country, capital in county_capital_dict.items()\n                    if capital == key]\n    print(f'您输入的首都\"{key}\"对应的国家为：{country_list[0]}')\nelse:\n    print(\"没有找到任何相关信息！\")","topic":"综合编程","explanation":"字典保存国家→首都；先按键查，再按值反查。"},{"id":"c9","type":"code","no":9,"stem":"将《共产党宣言》的英文序言解析为一个标准的单词列表。","stemCode":"","options":[],"answer":"","answerCode":"import string\ntext = \"'A. spectre is haunting Europe the spectre of communism. All the powers of \\\nold Europe have entered into a holy alliance to exorcise this spectre: Pope \\\nand Tsar, Mettrnich and Guizot, French Radicals and German police-spies. \\\nWhere is the party in opposition that has not been decried as communistic by \\\nits opponents in power? Where is the opposition that has not hurled back \\\nthe branding reproach of communism, against the more advanced opposition \\\nparties, as well as against its reactionary adversaries?\"\n# 1. 统一转小写，避免同一单词因大小写重复计数\ntext = text.lower()\n# 2. 按空白切分，自动合并连续空格与换行\nwords_list = text.split()\n# 3. 去掉每个词首尾的标点，再丢弃空串\nclear_words_list = [w.strip(string.punctuation) for w in words_list]\nclear_words_list = [w for w in clear_words_list if w]\nprint(f\"共包含 {len(clear_words_list)} 个单词：\")\nprint(clear_words_list)","topic":"综合编程","explanation":"lower 统一小写 → split 按空白切分 → strip 去标点 → 过滤空串。"},{"id":"c10","type":"code","no":10,"stem":"设计程序判断一个字符串是否对称。","stemCode":"","options":[],"answer":"","answerCode":"def reverse(s):\n    # 1. 从后往前逐字拼接，得到反转串\n    t = \"\"\n    for i in range(len(s) - 1, -1, -1):\n        t = t + s[i]\n    return t\ndef is_symmetry(s):\n    # 2. 反转后与原串比较\n    return reverse(s) == s\n# 3. 测试三种情况\nfor word in [\"abcdcba\", \"hello\", \"上海自来水来自海上\"]:\n    print(f\"{word} → {is_symmetry(word)}\")","topic":"综合编程","explanation":"先反转字符串，再与原串比较；也可用双指针。"},{"id":"c11","type":"code","no":11,"stem":"定义函数 get_grade(score)，按 90 分及以上为 A、75 分及以上为 B、60 分及以上为 C、其余为 D 返回等级，再从键盘输入一个分数并输出对应等级。","stemCode":"","options":[],"answer":"","answerCode":"# 1. 定义函数，按分数段返回等级\ndef get_grade(score):\n    if score >= 90:\n        return \"A\"\n    elif score >= 75:\n        return \"B\"\n    elif score >= 60:\n        return \"C\"\n    return \"D\"\n# 2. 读入分数并输出结果\nscore = int(input(\"请输入考试成绩：\"))\nprint(f\"分数 {score} 对应的等级为：{get_grade(score)}\")","topic":"综合编程","explanation":"按 90、75、60 三个分数段用 if-elif-else 返回等级。"},{"id":"c12","type":"code","no":12,"stem":"定义函数 triangle_type(a, b, c)，根据三条边的长度判定是等边三角形、等腰三角形、普通三角形，还是不能构成三角形，并输出判定结果。","stemCode":"","options":[],"answer":"","answerCode":"# 1. 判定三角形类型：先判断能否构成，再判断边的相等关系\ndef triangle_type(a, b, c):\n    if a + b \u003c= c or a + c \u003c= b or b + c \u003c= a:\n        return \"不能构成三角形\"\n    if a == b == c:\n        return \"等边三角形\"\n    if a == b or a == c or b == c:\n        return \"等腰三角形\"\n    return \"普通三角形\"\n# 2. 读入三条边长并输出结果\na = int(input(\"请输入第一条边长：\"))\nb = int(input(\"请输入第二条边长：\"))\nc = int(input(\"请输入第三条边长：\"))\nprint(f\"边长为 {a}、{b}、{c} 的三角形是：{triangle_type(a, b, c)}\")","topic":"综合编程","explanation":"先判断能否构成三角形，再按三边相等关系判断类型。"},{"id":"c13","type":"code","no":13,"stem":"用 1、3、5、8 四个数字，能组成多少个互不相同且无重复数字的三位数？输出全部结果（每行十个），最后输出总个数。","stemCode":"","options":[],"answer":"","answerCode":"nums = [\"1\", \"3\", \"5\", \"8\"]\ncount = 0\n# 1. 三重循环枚举百位、十位、个位\nfor a in nums:\n    for b in nums:\n        for c in nums:\n            # 2. 三个数字互不相同才计入\n            if a != b and a != c and b != c:\n                count += 1\n                print(f\"{a}{b}{c}\", end=\" \")\n                # 3. 每输出十个换行\n                if count % 10 == 0:\n                    print()\nprint()\nprint(f\"共有 {count} 个无重复数字的三位数\")","topic":"综合编程","explanation":"三重循环枚举百位、十位、个位，三个数字互不相同才计数。"},{"id":"c14","type":"code","no":14,"stem":"求 1! + 2! + 3! + … + 20! 的结果，输出累加后的精确值。","stemCode":"","options":[],"answer":"","answerCode":"# 1. 外层循环枚举 1 到 20，内层循环求当前阶乘\ntotal = 0\nfor n in range(1, 21):\n    fact = 1\n    for i in range(1, n + 1):\n        fact *= i\n    # 2. 累加到总和\n    total += fact\n# 3. 输出结果\nprint(f\"1! + 2! + … + 20! = {total}\")","topic":"综合编程","explanation":"外层枚举 1~20，内层求当前阶乘，再累加到总和。"},{"id":"c15","type":"code","no":15,"stem":"从键盘输入直角边的长度 n，用嵌套循环打印直角边为 n 的等腰直角三角形（第 1 行 1 个星号，第 n 行 n 个星号）。","stemCode":"","options":[],"answer":"","answerCode":"# 1. 读入直角边长度\nn = int(input(\"请输入直角边的长度：\"))\n# 2. 外层控制行数，内层控制每行的星号个数\nfor i in range(1, n + 1):\n    for j in range(i):\n        print(\"*\", end=\"\")\n    print()","topic":"综合编程","explanation":"外层控制行数，内层控制每行星号个数。"},{"id":"c16","type":"code","no":16,"stem":"编写登录程序：系统中有三组正确的用户名和密码（admin/666888、zhangsan/123456、taoge/888666），最多允许输入 5 次，登录成功提示「登录成功」并结束；5 次都错误则提示账号已锁定。","stemCode":"","options":[],"answer":"","answerCode":"# 1. 用字典保存用户名与密码的对应关系\nusers = {\"admin\": \"666888\", \"zhangsan\": \"123456\", \"taoge\": \"888666\"}\n# 2. 最多循环 5 次\nfor chance in range(1, 6):\n    name = input(\"请输入用户名：\")\n    pwd = input(\"请输入密码：\")\n    if users.get(name) == pwd:\n        print(\"登录成功\")\n        break\n    print(f\"用户名或密码错误，还剩 {5 - chance} 次机会\")\nelse:\n    # 3. 循环正常结束（未 break）说明 5 次都错\n    print(\"5 次机会已用完，账号已锁定\")","topic":"综合编程","explanation":"字典保存账号；最多循环 5 次，成功 break；for-else 处理 5 次都失败。"},{"id":"c17","type":"code","no":17,"stem":"计算 1 到 1000 之间（含 1000）所有 5 的倍数的和，并输出结果。","stemCode":"","options":[],"answer":"","answerCode":"# 1. 累加变量初始化为 0\ntotal = 0\n# 2. 遍历 1 到 1000，能被 5 整除的累加\nfor i in range(1, 1001):\n    if i % 5 == 0:\n        total += i\n# 3. 输出结果\nprint(f\"1 到 1000 之间所有 5 的倍数之和为 {total}\")","topic":"综合编程","explanation":"遍历 1~1000，i % 5 == 0 时累加。"},{"id":"c18","type":"code","no":18,"stem":"用递归定义函数 fact(n)，计算 n 的阶乘，输入 n 后输出 n! 的结果。","stemCode":"","options":[],"answer":"","answerCode":"# 1. 递归函数：终止条件 + 递归表达式\ndef fact(n):\n    if n == 1:\n        return 1\n    return n * fact(n - 1)\n# 2. 读入 n 并输出结果\nn = int(input(\"请输入一个正整数：\"))\nprint(f\"{n} 的阶乘为 {fact(n)}\")","topic":"综合编程","explanation":"递归阶乘：n==1 返回 1，否则返回 n * fact(n-1)。"},{"id":"c19","type":"code","no":19,"stem":"定义函数 class_stats(class_name, *scores)，参数为班级名称和若干名学员的总分，统计平均分（保留 1 位小数）、高于平均分人数和低于平均分人数，并输出。","stemCode":"","options":[],"answer":"","answerCode":"# 1. 不定长参数接收任意多名学员成绩\ndef class_stats(class_name, *scores):\n    avg = sum(scores) / len(scores)\n    above = 0\n    below = 0\n    for score in scores:\n        if score > avg:\n            above += 1\n        elif score \u003c avg:\n            below += 1\n    return avg, above, below\n# 2. 调用函数并输出统计结果\navg, above, below = class_stats(\"软件 1 班\", 88, 92, 75, 60, 95)\nprint(f\"软件 1 班平均分为 {avg:.1f} 分\")\nprint(f\"高于平均分的有 {above} 人，低于平均分的有 {below} 人\")","topic":"综合编程","explanation":"*scores 接收不定长成绩；sum/len 求平均，再统计高于/低于平均分人数。"},{"id":"c20","type":"code","no":20,"stem":"将三个列表合并为一个列表，去掉重复元素并按升序排列，输出合并后的列表和元素个数。list1 = ['M', 'A', 'C', 'E', 'F', 'G', 'H', 'L', 'N', 'I', 'J', 'K', 'O']；list2 =['X', 'Z', 'T', 'Y', 'D', 'E', 'F', 'G']；list3 = ['W', 'A', 'S', 'D']。","stemCode":"","options":[],"answer":"","answerCode":"list1 = [\"M\", \"A\", \"C\", \"E\", \"F\", \"G\", \"H\", \"L\", \"N\", \"I\", \"J\", \"K\", \"O\"]\nlist2 = [\"X\", \"Z\", \"T\", \"Y\", \"D\", \"E\", \"F\", \"G\"]\nlist3 = [\"W\", \"A\", \"S\", \"D\"]\n# 1. 三个列表相加合并，set 去重，sorted 升序\nresult = sorted(set(list1 + list2 + list3))\n# 2. 输出结果与个数\nprint(f\"合并去重排序后：{result}\")\nprint(f\"共有 {len(result)} 个元素\")","topic":"综合编程","explanation":"三个列表相加合并，set 去重，sorted 升序。"},{"id":"c21","type":"code","no":21,"stem":"已知字典 top5 存放豆瓣排名前五的电影及其导演，用 values() 方法依次输出所有导演的名字，每行一个。top5 = {\"肖申克的救赎\": \"弗兰克·德拉邦特\", \"霸王别姬\": \"陈凯歌\", \"阿甘正传\": \"罗伯特·泽米吉斯\", \"这个杀手不太冷\": \"吕克·贝松\", \"泰坦尼克号\": \"詹姆斯·卡梅隆\"}。","stemCode":"","options":[],"answer":"","answerCode":"top5 = {\n    \"肖申克的救赎\": \"弗兰克·德拉邦特\",\n    \"霸王别姬\": \"陈凯歌\",\n    \"阿甘正传\": \"罗伯特·泽米吉斯\",\n    \"这个杀手不太冷\": \"吕克·贝松\",\n    \"泰坦尼克号\": \"詹姆斯·卡梅隆\",\n}\n# 1. 用 values() 取出全部导演，逐个输出\nfor director in top5.values():\n    print(director)","topic":"综合编程","explanation":"用 values() 遍历字典中的全部导演名。"},{"id":"c22","type":"code","no":22,"stem":"根据四个兴趣班的报名名单，找出同时选修了法语和艺术的学生，并输出人数。足球、篮球、法语、艺术四个集合的名单见参考答案开头。","stemCode":"","options":[],"answer":"","answerCode":"# 1. 四个集合分别保存四门课的报名学生\nfootball_set = {\"王林\", \"曾牛\", \"徐立国\", \"遁天\", \"天运子\", \"韩立\", \"厉飞雨\", \"乌丑\", \"紫灵\"}\nbasketball_set = {\"张铁\", \"墨居仁\", \"王林\", \"姜老道\", \"曾牛\", \"王蝉\", \"韩立\", \"天运子\", \"李化元\", \"厉飞雨\", \"云露\"}\nfrench_set = {\"许木\", \"王卓\", \"十三\", \"虎咆\", \"姜老道\", \"天运子\", \"红蝶\", \"厉飞雨\", \"韩立\", \"曾牛\"}\nart_set = {\"遁天\", \"天运子\", \"韩立\", \"虎咆\", \"姜老道\", \"紫灵\"}\n# 2. 交集得到同时选修法语和艺术的学生\nboth = french_set & art_set\nprint(f\"同时选修法语和艺术的学生：{both}\")\nprint(f\"共有 {len(both)} 人\")","topic":"综合编程","explanation":"用集合交集 & 找出同时选修法语和艺术的学生。"},{"id":"c23","type":"code","no":23,"stem":"小智的银行卡余额为 10000 元，编写取款程序：输入取款金额，金额大于余额时提示余额不足，金额小于等于 0 时提示金额有误，否则扣减余额并输出剩余金额。","stemCode":"","options":[],"answer":"","answerCode":"# 1. 初始余额\nbalance = 10000\n# 2. 读入取款金额\namount = float(input(\"请输入取款金额：\"))\n# 3. 三种情况分别处理\nif amount \u003c= 0:\n    print(\"取款金额有误，请输入正数\")\nelif amount > balance:\n    print(f\"余额不足，当前余额为 {balance:.2f} 元\")\nelse:\n    balance -= amount\n    print(f\"取款 {amount:.2f} 元成功，余额为 {balance:.2f} 元\")","topic":"综合编程","explanation":"按金额≤0、金额>余额、正常取款三种情况分支处理。"},{"id":"c24","type":"code","no":24,"stem":"统计字符串 \"akiwksjakdiklowiqaamnvbamvaxnsjdsjkaaxkjd\" 中字母 a 和字母 k 各出现了多少次，并输出字符串的总长度。","stemCode":"","options":[],"answer":"","answerCode":"text = \"akiwksjakdiklowiqaamnvbamvaxnsjdsjkaaxkjd\"\n# 1. 用 count() 分别统计 a 与 k 的个数\ncount_a = text.count(\"a\")\ncount_k = text.count(\"k\")\n# 2. 输出统计结果\nprint(f\"字符串长度为 {len(text)}\")\nprint(f\"字母 a 出现 {count_a} 次，字母 k 出现 {count_k} 次\")","topic":"综合编程","explanation":"用 count() 统计 a、k 出现次数，用 len() 求总长度。"},{"id":"c25","type":"code","no":25,"stem":"定义函数 time_convert(total_seconds)，把传入的总秒数转换为小时、分钟、秒并返回，输入秒数后按「x 小时 x 分 x 秒」的格式输出。","stemCode":"","options":[],"answer":"","answerCode":"# 1. 用整除和取余把秒拆成时、分、秒\ndef time_convert(total_seconds):\n    hours = total_seconds // 3600\n    minutes = total_seconds % 3600 // 60\n    seconds = total_seconds % 60\n    return hours, minutes, seconds\n# 2. 读入秒数并输出转换结果\ntotal = int(input(\"请输入秒数：\"))\nh, m, s = time_convert(total)\nprint(f\"{total} 秒 = {h} 小时 {m} 分 {s} 秒\")","topic":"综合编程","explanation":"用整除和取余把总秒数拆成小时、分钟、秒。"}]</script>
+<script>
+(function () {
+  'use strict';
+
+  var DATA = JSON.parse(document.getElementById('qdata').textContent);
+  var TYPE_LABEL = { single: '单选', judge: '判断', fill: '填空', short: '简答', code: '编程' };
+  var TYPE_ORDER = ['single', 'judge', 'fill', 'short', 'code'];
+  var TOPIC_ORDER = ['语言基础', '数据类型', '列表与元组', '字典与集合', '流程控制', '函数与递归', '模块与文件', '综合编程'];
+  var TOTAL = DATA.length;
+
+  var progress = loadJSON('pyquiz:progress', {});
+  if (!progress || typeof progress !== 'object' || Array.isArray(progress)) progress = {};
+  var wrong = new Set(loadJSON('pyquiz:wrong', []) || []);
+  if (!(wrong instanceof Set)) wrong = new Set();
+
+  var state = {
+    mode: 'seq',
+    typeFilter: 'all',
+    topicFilter: 'all',
+    queue: [],
+    index: 0,
+    selected: null,
+    submitted: false,
+    result: null,
+    fillValue: '',
+    subjectiveValue: ''
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var card = $('card');
+  var emptyBox = $('empty');
+  var toastTimer = null;
+
+  function loadJSON(key, fallback) {
+    try {
+      var raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (e) {
+      return fallback;
+    }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem('pyquiz:progress', JSON.stringify(progress));
+      localStorage.setItem('pyquiz:wrong', JSON.stringify(Array.from(wrong)));
+    } catch (e) { /* 隐私模式或 file:// 限制时仅保留在内存 */ }
+  }
+
+  function current() {
+    return state.queue[state.index] || null;
+  }
+
+  function correctKeyOf(q) {
+    if (q.type === 'judge') return q.answer === '正确' ? 'A' : 'B';
+    if (q.type === 'single') return q.answer;
+    return null;
+  }
+
+  function toast(message) {
+    var el = $('toast');
+    el.textContent = message;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.classList.remove('show'); }, 1800);
+  }
+
+  function shuffle(arr) {
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+
+  function buildPool() {
+    var arr = DATA.filter(function (q) {
+      if (state.typeFilter !== 'all' && q.type !== state.typeFilter) return false;
+      if (state.topicFilter !== 'all' && q.topic !== state.topicFilter) return false;
+      if (state.mode === 'wrong' && !wrong.has(q.id)) return false;
+      return true;
+    });
+    if (state.mode === 'random') shuffle(arr);
+    return arr;
+  }
+
+  function rebuildQueue(keepCurrent) {
+    var prev = keepCurrent ? current() : null;
+    var arr = buildPool();
+    state.queue = arr;
+    if (!arr.length) {
+      state.index = 0;
+      resetCardState();
+      renderEmpty();
+      updateStats();
+      return;
+    }
+    var idx = prev ? arr.findIndex(function (q) { return q.id === prev.id; }) : -1;
+    if (idx < 0 && state.mode === 'seq') {
+      idx = arr.findIndex(function (q) { return !progress[q.id]; });
+    }
+    state.index = idx >= 0 ? idx : 0;
+    resetCardState();
+    render();
+    updateStats();
+  }
+
+  function resetCardState() {
+    state.selected = null;
+    state.submitted = false;
+    state.result = null;
+    state.fillValue = '';
+    state.subjectiveValue = '';
+  }
+
+  function buildFilters() {
+    var typeSel = $('typeFilter');
+    var topicSel = $('topicFilter');
+    var typeCounts = {};
+    var topicCounts = {};
+    DATA.forEach(function (q) {
+      typeCounts[q.type] = (typeCounts[q.type] || 0) + 1;
+      topicCounts[q.topic] = (topicCounts[q.topic] || 0) + 1;
+    });
+    typeSel.innerHTML = '';
+    var allType = document.createElement('option');
+    allType.value = 'all';
+    allType.textContent = '全部题型（' + TOTAL + '）';
+    typeSel.appendChild(allType);
+    TYPE_ORDER.forEach(function (t) {
+      if (!typeCounts[t]) return;
+      var o = document.createElement('option');
+      o.value = t;
+      o.textContent = TYPE_LABEL[t] + '（' + typeCounts[t] + '）';
+      typeSel.appendChild(o);
+    });
+    topicSel.innerHTML = '';
+    var allTopic = document.createElement('option');
+    allTopic.value = 'all';
+    allTopic.textContent = '全部知识点（' + TOTAL + '）';
+    topicSel.appendChild(allTopic);
+    TOPIC_ORDER.forEach(function (t) {
+      if (!topicCounts[t]) return;
+      var o = document.createElement('option');
+      o.value = t;
+      o.textContent = t + '（' + topicCounts[t] + '）';
+      topicSel.appendChild(o);
+    });
+  }
+
+  function updateStats() {
+    var ids = Object.keys(progress);
+    var answered = ids.length;
+    var correct = 0;
+    ids.forEach(function (id) { if (progress[id] && progress[id].correct) correct++; });
+    $('statAnswered').textContent = answered;
+    $('statAccuracy').textContent = answered ? Math.round(correct / answered * 100) + '%' : '—';
+    $('statWrong').textContent = wrong.size;
+    $('wrongBadge').textContent = wrong.size;
+    $('globalProgress').style.width = Math.min(100, answered / TOTAL * 100) + '%';
+  }
+
+  function renderEmpty() {
+    card.classList.add('hidden');
+    emptyBox.classList.remove('hidden');
+    var title = '当前筛选下没有题目';
+    var text = '换一个题型或知识点试试。';
+    if (state.mode === 'wrong') {
+      title = '错题本是空的';
+      text = '先去做几道题，答错的题目会自动收进这里。';
+    }
+    $('emptyTitle').textContent = title;
+    $('emptyText').textContent = text;
+  }
+
+  function render() {
+    var q = current();
+    if (!q) { renderEmpty(); return; }
+    card.classList.remove('hidden');
+    emptyBox.classList.add('hidden');
+
+    $('queuePos').textContent = '第 ' + (state.index + 1) + ' / ' + state.queue.length + ' 题';
+    var typeBadge = $('typeBadge');
+    typeBadge.className = 'badge type-' + q.type;
+    typeBadge.textContent = TYPE_LABEL[q.type];
+    $('topicBadge').textContent = q.topic;
+    $('origNo').textContent = '原题 ' + q.no;
+
+    var last = progress[q.id];
+    var lastBadge = $('lastBadge');
+    if (last) {
+      lastBadge.classList.remove('hidden', 'last-good', 'last-bad');
+      lastBadge.classList.add(last.correct ? 'last-good' : 'last-bad');
+      lastBadge.textContent = last.correct ? '上次答对' : '上次答错';
+    } else {
+      lastBadge.classList.add('hidden');
+    }
+
+    $('stem').textContent = q.stem || '';
+    if (q.stemCode) {
+      $('stemCodeWrap').classList.remove('hidden');
+      $('stemCode').textContent = q.stemCode;
+    } else {
+      $('stemCodeWrap').classList.add('hidden');
+      $('stemCode').textContent = '';
+    }
+
+    renderOptions(q);
+    renderInputs(q);
+    renderActions(q);
+    renderAnswer(q);
+  }
+
+  function renderOptions(q) {
+    var wrap = $('options');
+    wrap.innerHTML = '';
+    if (q.type !== 'single' && q.type !== 'judge') return;
+    var ck = correctKeyOf(q);
+    q.options.forEach(function (o) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'option';
+      btn.dataset.key = o.key;
+      if (state.selected === o.key) btn.classList.add('selected');
+      if (state.submitted) {
+        btn.disabled = true;
+        if (o.key === ck) btn.classList.add('correct');
+        else if (state.selected === o.key) btn.classList.add('wrong');
+      }
+      var key = document.createElement('span');
+      key.className = 'key';
+      key.textContent = o.key;
+      var text = document.createElement('span');
+      text.className = 'opt-text' + (o.mono ? ' mono' : '');
+      text.textContent = o.text;
+      btn.appendChild(key);
+      btn.appendChild(text);
+      btn.addEventListener('click', function () { selectOption(o.key); });
+      wrap.appendChild(btn);
+    });
+  }
+
+  function renderInputs(q) {
+    var fillArea = $('fillArea');
+    var subjArea = $('subjectiveArea');
+    if (q.type === 'fill') {
+      fillArea.classList.remove('hidden');
+      subjArea.classList.add('hidden');
+      $('fillInput').value = state.fillValue;
+      $('fillInput').disabled = state.submitted;
+    } else if (q.type === 'short' || q.type === 'code') {
+      fillArea.classList.add('hidden');
+      subjArea.classList.remove('hidden');
+      $('subjectiveInput').value = state.subjectiveValue;
+      $('subjectiveInput').disabled = state.submitted;
+    } else {
+      fillArea.classList.add('hidden');
+      subjArea.classList.add('hidden');
+    }
+  }
+
+  function renderActions(q) {
+    $('prevBtn').disabled = state.index <= 0;
+    $('nextBtn').disabled = state.index >= state.queue.length - 1;
+    var submitBtn = $('submitBtn');
+    if (state.submitted) {
+      submitBtn.classList.add('hidden');
+      $('nextBtn').classList.add('primary');
+      $('nextBtn').classList.remove('ghost');
+    } else {
+      submitBtn.classList.remove('hidden');
+      submitBtn.textContent = (q.type === 'short' || q.type === 'code') ? '对照参考答案' : '提交答案';
+      $('nextBtn').classList.remove('primary');
+      $('nextBtn').classList.add('ghost');
+    }
+  }
+
+  function renderAnswer(q) {
+    var panel = $('answerPanel');
+    if (!state.submitted) {
+      panel.classList.add('hidden');
+      return;
+    }
+    panel.classList.remove('hidden');
+
+    var resultLine = $('resultLine');
+    resultLine.classList.remove('good', 'bad', 'neutral');
+    if (state.result === true) {
+      resultLine.textContent = '回答正确';
+      resultLine.classList.add('good');
+    } else if (state.result === false) {
+      resultLine.textContent = '回答错误';
+      resultLine.classList.add('bad');
+    } else {
+      resultLine.textContent = '已显示参考答案，请自评';
+      resultLine.classList.add('neutral');
+    }
+
+    var tag = '';
+    var answerText = '';
+    if (q.type === 'single' || q.type === 'judge') {
+      var ck = correctKeyOf(q);
+      var opt = q.options.find(function (o) { return o.key === ck; });
+      tag = '正确答案 ' + ck;
+      answerText = ck + '. ' + (opt ? opt.text : '');
+    } else if (q.type === 'fill') {
+      tag = '参考答案';
+      answerText = q.answer;
+    } else if (q.type === 'short') {
+      tag = '参考答案';
+      answerText = q.answer || '见下方参考代码';
+    } else {
+      tag = '参考代码';
+      answerText = '';
+    }
+    $('answerTag').textContent = tag;
+    $('answerText').textContent = answerText;
+    $('answerTextBlock').classList.toggle('hidden', !answerText);
+
+    $('explanation').textContent = q.explanation || '';
+
+    if (q.answerCode) {
+      $('answerCodeWrap').classList.remove('hidden');
+      $('answerCode').textContent = q.answerCode;
+    } else {
+      $('answerCodeWrap').classList.add('hidden');
+      $('answerCode').textContent = '';
+    }
+
+    var isSubjective = q.type === 'short' || q.type === 'code';
+    var showSelf = (isSubjective && state.result === null) || (q.type === 'fill' && state.result === false);
+    var selfRight = $('selfRight');
+    var selfWrong = $('selfWrong');
+    selfRight.classList.toggle('hidden', !showSelf);
+    selfWrong.classList.toggle('hidden', !(isSubjective && state.result === null));
+    selfRight.textContent = (q.type === 'fill') ? '我答对了（校正）' : '我答对了';
+
+    var removeBtn = $('removeWrong');
+    var canRemove = wrong.has(q.id) && !showSelf;
+    removeBtn.classList.toggle('hidden', !canRemove);
+  }
+
+  function selectOption(key) {
+    if (state.submitted) return;
+    var q = current();
+    if (!q || !q.options.some(function (o) { return o.key === key; })) return;
+    state.selected = key;
+    renderOptions(q);
+  }
+
+  function checkFill(q, value) {
+    var variants = [q.answer].concat(q.accept || []);
+    var target = normalize(value);
+    return variants.some(function (v) { return normalize(v) === target; });
+  }
+
+  function normalize(s) {
+    return String(s)
+      .toLowerCase()
+      .replace(/\s+/g, '')
+      .replace(/；/g, ';')
+      .replace(/，/g, ',')
+      .replace(/：/g, ':')
+      .replace(/（/g, '(')
+      .replace(/）/g, ')')
+      .replace(/“|”/g, '"')
+      .replace(/‘|’/g, "'");
+  }
+
+  function record(q, isCorrect) {
+    progress[q.id] = { correct: !!isCorrect, ts: Date.now() };
+    if (isCorrect) {
+      // 不再自动移出错题本，保留“已掌握”手动移除
+    } else {
+      wrong.add(q.id);
+    }
+    save();
+    updateStats();
+  }
+
+  function submit() {
+    var q = current();
+    if (!q) return;
+    if (q.type === 'single' || q.type === 'judge') {
+      if (!state.selected) {
+        toast('请先选择一个答案');
+        return;
+      }
+      var correct = state.selected === correctKeyOf(q);
+      state.submitted = true;
+      state.result = correct;
+      record(q, correct);
+      render();
+      return;
+    }
+    if (q.type === 'fill') {
+      var value = $('fillInput').value.trim();
+      if (!value) {
+        toast('请先填写答案');
+        $('fillInput').focus();
+        return;
+      }
+      var ok = checkFill(q, value);
+      state.fillValue = value;
+      state.submitted = true;
+      state.result = ok;
+      record(q, ok);
+      render();
+      return;
+    }
+    state.submitted = true;
+    state.result = null;
+    render();
+  }
+
+  function selfGrade(isCorrect) {
+    var q = current();
+    if (!q) return;
+    state.result = isCorrect;
+    progress[q.id] = { correct: !!isCorrect, ts: Date.now() };
+    if (isCorrect) wrong.delete(q.id);
+    else wrong.add(q.id);
+    save();
+    updateStats();
+    render();
+    toast(isCorrect ? '已记为答对' : '已加入错题本');
+  }
+
+  function next() {
+    if (state.index < state.queue.length - 1) {
+      state.index++;
+      resetCardState();
+      render();
+      scrollToCard();
+    } else {
+      toast('已经是最后一题');
+    }
+  }
+
+  function prev() {
+    if (state.index > 0) {
+      state.index--;
+      resetCardState();
+      render();
+      scrollToCard();
+    }
+  }
+
+  function scrollToCard() {
+    if (!card.classList.contains('hidden')) {
+      card.scrollIntoView({ block: 'start' });
+    }
+  }
+
+  function removeCurrentWrong() {
+    var q = current();
+    if (!q) return;
+    wrong.delete(q.id);
+    save();
+    updateStats();
+    toast('已移出错题本');
+    if (state.mode === 'wrong') rebuildQueue(false);
+    else render();
+  }
+
+  // 事件绑定
+  document.querySelectorAll('.modes button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.modes button').forEach(function (b) {
+        b.classList.toggle('active', b === btn);
+        b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+      });
+      state.mode = btn.dataset.mode;
+      rebuildQueue(false);
+      scrollToCard();
+    });
+  });
+
+  $('typeFilter').addEventListener('change', function (e) {
+    state.typeFilter = e.target.value;
+    rebuildQueue(true);
+  });
+  $('topicFilter').addEventListener('change', function (e) {
+    state.topicFilter = e.target.value;
+    rebuildQueue(true);
+  });
+
+  $('prevBtn').addEventListener('click', prev);
+  $('nextBtn').addEventListener('click', next);
+  $('submitBtn').addEventListener('click', submit);
+  $('selfRight').addEventListener('click', function () { selfGrade(true); });
+  $('selfWrong').addEventListener('click', function () { selfGrade(false); });
+  $('removeWrong').addEventListener('click', removeCurrentWrong);
+
+  $('fillInput').addEventListener('input', function (e) {
+    state.fillValue = e.target.value;
+  });
+  $('subjectiveInput').addEventListener('input', function (e) {
+    state.subjectiveValue = e.target.value;
+  });
+
+  $('resetProgress').addEventListener('click', function () {
+    if (!confirm('确定重置全部练习进度和错题本吗？此操作不可撤销。')) return;
+    progress = {};
+    wrong = new Set();
+    save();
+    updateStats();
+    rebuildQueue(false);
+    toast('练习进度已重置');
+  });
+  $('clearWrong').addEventListener('click', function () {
+    if (!wrong.size) { toast('错题本已经是空的'); return; }
+    if (!confirm('确定清空错题本吗？练习进度会保留。')) return;
+    wrong = new Set();
+    save();
+    updateStats();
+    rebuildQueue(false);
+    toast('错题本已清空');
+  });
+
+  document.addEventListener('keydown', function (e) {
+    var tag = (e.target.tagName || '').toLowerCase();
+    var typing = tag === 'input' || tag === 'textarea';
+
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      if (!state.submitted) submit();
+      return;
+    }
+    if (typing) {
+      if (tag === 'input' && e.key === 'Enter') {
+        e.preventDefault();
+        if (!state.submitted) submit();
+        else next();
+      }
+      return;
+    }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (!state.submitted) submit();
+      else next();
+      return;
+    }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); return; }
+    if (e.key === 'ArrowRight') { e.preventDefault(); next(); return; }
+    var q = current();
+    if (!q || state.submitted) return;
+    if (/^[a-dA-D]$/.test(e.key) && (q.type === 'single' || q.type === 'judge')) {
+      e.preventDefault();
+      selectOption(e.key.toUpperCase());
+    }
+  });
+
+  buildFilters();
+  rebuildQueue(false);
+  updateStats();
+})();
+</script>
+</body>
+</html>
