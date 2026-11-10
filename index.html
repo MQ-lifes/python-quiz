@@ -319,7 +319,7 @@
     <div class="modal">
       <button type="button" id="payClose" class="modal-close" aria-label="关闭">×</button>
       <div class="modal-kicker">解锁全部题目</div>
-      <h2 id="payTitle">¥9.9 一次买断</h2>
+      <h2 id="payTitle">一次买断</h2>
       <p class="modal-sub">184 道题 · 全题型 · 参考答案与解析 · 错题本与进度统计</p>
       <ul class="benefits">
         <li>184 道题，覆盖 8 个知识点</li>
@@ -373,7 +373,7 @@
   var PAY_CONFIG = {
     afdianUrl: 'https://afdian.com/item/adf15b5cdcba11f1ba5752540025c377',
     freeLimit: 30,
-    priceText: '¥9.9',
+    priceText: '¥1（测试价）',
     codeSecret: 'MQ677QWERTYUIOPASDFGHJKL9Xb2sN7z',
     codePrefix: 'v1|'
   };
@@ -1231,6 +1231,7 @@
     }
   });
 
+  $('payTitle').textContent = PAY_CONFIG.priceText + ' 一次买断';
   buildFilters();
   updateQuotaUI();
   rebuildQueue(false);
