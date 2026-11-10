@@ -619,7 +619,12 @@
       return;
     }
     statusPoll.tries += 1;
-    fetch(apiBaseUrl() + '/api/status?code=' + encodeURIComponent(unlockCode), { cache: 'no-store' })
+    var controller = typeof AbortController === 'function' ? new AbortController() : null;
+    var timer = controller ? setTimeout(function () { controller.abort(); }, 4000) : null;
+    fetch(apiBaseUrl() + '/api/status?code=' + encodeURIComponent(unlockCode), {
+      cache: 'no-store',
+      signal: controller ? controller.signal : undefined
+    })
       .then(function (res) {
         if (!res.ok) throw new Error('http ' + res.status);
         return res.json();
@@ -639,6 +644,9 @@
           stopStatusPolling();
           setUnlockStatus('自动解锁接口暂不可用，请使用兑换码解锁，不影响做题。', false);
         }
+      })
+      .then(function () {
+        if (timer) clearTimeout(timer);
       });
   }
 
