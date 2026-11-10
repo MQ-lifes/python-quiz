@@ -7,6 +7,11 @@
 tools/
 docs/
 
+# Cloudflare Worker 源码与本地敏感变量：不进仓库
+worker/
+.dev.vars
+.wrangler/
+
 # 常见系统/编辑器文件
 .DS_Store
 Thumbs.db
