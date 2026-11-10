@@ -171,6 +171,11 @@
   .unlock-code-row .btn { white-space: nowrap; padding: 8px 12px; }
   .unlock-status { margin: 8px 0 0; font-size: 12px; color: var(--muted); min-height: 17px; }
   .unlock-status.ok { color: var(--good); }
+  .pay-confirm { margin: 12px 0 4px; padding: 12px 14px; border: 1px solid #efe0bd; background: #fdf8ec; border-radius: 12px; }
+  .pay-confirm label { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #6b4d0a; line-height: 1.6; cursor: pointer; }
+  .pay-confirm input { margin-top: 3px; accent-color: var(--accent); }
+  .pay-confirm code { font-family: var(--mono); font-weight: 750; color: var(--accent); }
+  .pay-confirm .btn { margin-top: 10px; width: 100%; }
 
   @media (max-width: 620px) {
     .page { padding: 20px 14px 40px; }
@@ -336,15 +341,19 @@
         <li>练习进度、正确率与错题统计</li>
         <li>刷新、换设备后重新输入兑换码即可</li>
       </ul>
-      <button type="button" id="buyBtn" class="btn primary block">去爱发电解锁</button>
-      <p class="modal-hint" id="buyHint">商品链接待作者填写；付款后 5 分钟内私信发兑换码。</p>
       <div class="auto-unlock" id="autoUnlock">
-        <p class="auto-unlock-title">付款时请在备注里填：</p>
+        <p class="auto-unlock-title">付款时务必把备注填成以下编号：</p>
         <div class="unlock-code-row">
           <code id="unlockCode">MQ-XXXXX</code>
           <button type="button" id="copyCode" class="btn ghost">复制</button>
         </div>
         <p class="unlock-status" id="unlockStatus" role="status" aria-live="polite"></p>
+      </div>
+      <button type="button" id="buyBtn" class="btn primary block">去爱发电解锁</button>
+      <p class="modal-hint" id="buyHint">备注没填编号将无法自动解锁；付款后通常 1 分钟内自动完成。</p>
+      <div class="pay-confirm hidden" id="payConfirm">
+        <label><input type="checkbox" id="confirmRemark"> 我已把爱发电备注填成 <code id="confirmCode">MQ-XXXXX</code></label>
+        <button type="button" id="confirmPay" class="btn primary" disabled>确认并前往爱发电</button>
       </div>
       <div class="redeem-row">
         <input id="redeemInput" type="text" placeholder="输入兑换码，如 PYQ-XXXX-XXXXXXXXXX" autocomplete="off" spellcheck="false">
@@ -414,7 +423,7 @@
   var unlocked = loadJSON('pyquiz:unlocked', false) === true;
   var previewMode = false;
   var unlockCode = ensureUnlockCode();
-  var statusPoll = { timer: null, tries: 0, failures: 0 };
+  var statusPoll = { timer: null, tries: 0, apiFailures: 0, manifestFailures: 0 };
 
   var state = {
     mode: 'seq',
@@ -536,6 +545,12 @@
   function openPayModal() {
     $('payModal').classList.remove('hidden');
     renderUnlockCode();
+    var box = $('payConfirm');
+    if (box) box.classList.add('hidden');
+    var checkbox = $('confirmRemark');
+    if (checkbox) checkbox.checked = false;
+    var confirmBtn = $('confirmPay');
+    if (confirmBtn) confirmBtn.disabled = true;
     setRedeemMsg('', false);
     if (!unlocked) startStatusPolling();
     setTimeout(function () {
@@ -580,6 +595,8 @@
   function renderUnlockCode() {
     var el = $('unlockCode');
     if (el) el.textContent = unlockCode;
+    var confirm = $('confirmCode');
+    if (confirm) confirm.textContent = unlockCode;
   }
 
   function setUnlockStatus(message, ok) {
@@ -596,29 +613,56 @@
     }
   }
 
-  function startStatusPolling() {
-    stopStatusPolling();
-    statusPoll = { timer: null, tries: 0, failures: 0 };
-    if (!apiBaseUrl()) {
-      setUnlockStatus('自动解锁尚未配置，请使用下方兑换码解锁。', false);
-      return;
+  function sha256Hex(text) {
+    if (!(window.crypto && window.crypto.subtle && window.crypto.subtle.digest)) {
+      return Promise.reject(new Error('no-crypto'));
     }
-    setUnlockStatus('等待付款结果…付款后通常 1–5 分钟自动解锁。', false);
-    pollStatus();
-    statusPoll.timer = setInterval(pollStatus, 5000);
+    return window.crypto.subtle
+      .digest('SHA-256', new TextEncoder().encode(text))
+      .then(function (buffer) {
+        var bytes = new Uint8Array(buffer);
+        var out = '';
+        for (var i = 0; i < bytes.length; i++) out += ('0' + bytes[i].toString(16)).slice(-2);
+        return out;
+      });
   }
 
-  function pollStatus() {
-    if (unlocked) {
-      stopStatusPolling();
+  // 同源清单：GitHub Pages 上的 unlocks.json 只含 SHA-256 哈希，国内可直连。
+  function checkManifest() {
+    var url = new URL('unlocks.json?v=' + Date.now(), window.location.href).toString();
+    return fetch(url, { cache: 'no-store' })
+      .then(function (res) {
+        if (!res.ok) throw new Error('http ' + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        if (!data || !Array.isArray(data.codes)) throw new Error('bad-manifest');
+        return sha256Hex(unlockCode).then(function (hash) {
+          statusPoll.manifestFailures = 0;
+          return data.codes.some(function (item) {
+            return String(item || '').toLowerCase() === hash;
+          });
+        });
+      })
+      .catch(function () {
+        statusPoll.manifestFailures += 1;
+        return false;
+      });
+  }
+
+  function maybeDegradeAutoUnlock() {
+    if (statusPoll.manifestFailures < 3) return false;
+    if (apiBaseUrl() && statusPoll.apiFailures < 3) return false;
+    stopStatusPolling();
+    setUnlockStatus('自动解锁接口暂不可用，请使用兑换码解锁，不影响做题。', false);
+    return true;
+  }
+
+  function checkRemoteStatus() {
+    if (!apiBaseUrl() || statusPoll.apiFailures >= 3) {
+      maybeDegradeAutoUnlock();
       return;
     }
-    if (statusPoll.tries >= 60) {
-      stopStatusPolling();
-      setUnlockStatus('自动解锁等待超时，可稍后重新打开本窗口，或使用兑换码。', false);
-      return;
-    }
-    statusPoll.tries += 1;
     var controller = typeof AbortController === 'function' ? new AbortController() : null;
     var timer = controller ? setTimeout(function () { controller.abort(); }, 4000) : null;
     fetch(apiBaseUrl() + '/api/status?code=' + encodeURIComponent(unlockCode), {
@@ -630,24 +674,59 @@
         return res.json();
       })
       .then(function (data) {
+        if (unlocked) return;
         if (data && data.unlocked) {
           stopStatusPolling();
           applyUnlock('支付已确认，已自动解锁全部 184 道题');
         } else {
-          statusPoll.failures = 0;
-          setUnlockStatus('已等待 ' + statusPoll.tries * 5 + ' 秒，付款后会自动解锁。', false);
+          statusPoll.apiFailures = 0;
         }
       })
       .catch(function () {
-        statusPoll.failures += 1;
-        if (statusPoll.failures >= 3) {
-          stopStatusPolling();
-          setUnlockStatus('自动解锁接口暂不可用，请使用兑换码解锁，不影响做题。', false);
-        }
+        statusPoll.apiFailures += 1;
+        maybeDegradeAutoUnlock();
       })
       .then(function () {
         if (timer) clearTimeout(timer);
       });
+  }
+
+  function startStatusPolling() {
+    stopStatusPolling();
+    statusPoll = { timer: null, tries: 0, apiFailures: 0, manifestFailures: 0 };
+    if (!apiBaseUrl() && !(window.crypto && window.crypto.subtle)) {
+      setUnlockStatus('自动解锁尚未配置，请使用下方兑换码解锁。', false);
+      return;
+    }
+    setUnlockStatus('正在确认付款（通常 1 分钟内自动完成）…', false);
+    pollStatus();
+    statusPoll.timer = setInterval(pollStatus, 9000);
+  }
+
+  function pollStatus() {
+    if (unlocked) {
+      stopStatusPolling();
+      return;
+    }
+    if (statusPoll.tries >= 20) {
+      stopStatusPolling();
+      setUnlockStatus(
+        '未检测到解锁记录。若已付款，请确认备注填写了 ' + unlockCode + '；可稍后重新打开本窗口，或使用兑换码。',
+        false
+      );
+      return;
+    }
+    statusPoll.tries += 1;
+    setUnlockStatus('正在确认付款（已等待 ' + statusPoll.tries * 9 + ' 秒，通常 1 分钟内完成）…', false);
+    checkManifest().then(function (hit) {
+      if (unlocked) return;
+      if (hit) {
+        stopStatusPolling();
+        applyUnlock('支付已确认，已自动解锁全部 184 道题');
+        return;
+      }
+      checkRemoteStatus();
+    });
   }
 
   function copyUnlockCode() {
@@ -672,6 +751,24 @@
       return;
     }
     window.open(url, '_blank', 'noopener');
+  }
+
+  // 付款前强制确认：先复制编号，再让用户勾选“已填写备注”，才允许跳转。
+  function beginPayment() {
+    copyUnlockCode();
+    var box = $('payConfirm');
+    if (box) box.classList.remove('hidden');
+    var checkbox = $('confirmRemark');
+    var btn = $('confirmPay');
+    if (checkbox) checkbox.checked = false;
+    if (btn) btn.disabled = true;
+    setUnlockStatus('请把备注填成 ' + unlockCode + ' 后再付款，编号已复制。', false);
+  }
+
+  function confirmPayment() {
+    var checkbox = $('confirmRemark');
+    if (checkbox && !checkbox.checked) return;
+    goAfdian();
   }
 
   function enterPreview() {
@@ -1272,8 +1369,12 @@
   $('removeWrong').addEventListener('click', removeCurrentWrong);
 
   $('quotaUnlock').addEventListener('click', openPayModal);
-  $('lockBuy').addEventListener('click', goAfdian);
-  $('buyBtn').addEventListener('click', goAfdian);
+  $('lockBuy').addEventListener('click', openPayModal);
+  $('buyBtn').addEventListener('click', beginPayment);
+  $('confirmRemark').addEventListener('change', function () {
+    $('confirmPay').disabled = !this.checked;
+  });
+  $('confirmPay').addEventListener('click', confirmPayment);
   $('lockRedeem').addEventListener('click', openPayModal);
   $('lockPreview').addEventListener('click', enterPreview);
   $('modalPreview').addEventListener('click', enterPreview);
@@ -1293,7 +1394,8 @@
   $('previewExit').addEventListener('click', exitPreview);
 
   if (apiBaseUrl()) {
-    $('buyHint').textContent = '付款时在备注里填写上方解锁编号，到账后 1–5 分钟自动解锁；也可使用兑换码。';
+    $('buyHint').textContent =
+      '付款时请把备注填成 ' + unlockCode + '，否则无法自动解锁；付款后通常 1 分钟内自动完成，也可使用兑换码。';
   } else if (/^https?:\/\//i.test(String(PAY_CONFIG.afdianUrl || ''))) {
     $('buyHint').textContent = '付款后 5 分钟内通过爱发电私信发送兑换码；未收到请留言订单号。';
   }
