@@ -122,8 +122,49 @@
   .foot-links button { border: 0; background: none; padding: 0; color: var(--muted); font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
   .foot-sign { margin-top: 14px !important; color: #9aa19c; font-size: 11.5px; letter-spacing: .06em; }
   .foot-sign .sign-inline { font-family: "Segoe Script", "Bradley Hand", "Brush Script MT", "Snell Roundhand", "Noteworthy", cursive; font-style: italic; font-size: 14px; color: var(--muted); letter-spacing: .02em; }
-  .toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(8px); background: #20262b; color: #fff; font-size: 13px; padding: 9px 14px; border-radius: 10px; opacity: 0; pointer-events: none; transition: opacity .18s ease, transform .18s ease; z-index: 10; max-width: calc(100vw - 40px); }
+  .toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(8px); background: #20262b; color: #fff; font-size: 13px; padding: 9px 14px; border-radius: 10px; opacity: 0; pointer-events: none; transition: opacity .18s ease, transform .18s ease; z-index: 30; max-width: calc(100vw - 40px); }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ===== 付费软墙（阶段一：纯前端，密钥可见） ===== */
+  .paybar { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; margin-top: 18px; padding: 10px 14px; background: #fbf7ec; border: 1px solid #eadfc6; border-radius: 12px; color: #6b5b3e; font-size: 13px; }
+  .paybar-main { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .paybar strong { color: #8a4b00; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .paybar-note { font-size: 12px; color: #8a7a5b; }
+  .paybar.warn { background: #fdf3e3; border-color: #eccf9f; }
+  .paybar.unlocked { background: var(--good-weak); border-color: #c8e5d0; color: #166534; }
+  .paybar.unlocked .paybar-note { color: #3f7a52; }
+  .paybar-link { border: 0; background: none; padding: 0; color: var(--accent); font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .paybar-link:hover { color: #0b5f59; }
+
+  .lock-screen { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 34px 30px 28px; box-shadow: 0 14px 44px rgba(42, 36, 26, .055); }
+  .lock-kicker { font-size: 11px; letter-spacing: .16em; font-weight: 750; color: var(--warn); }
+  .lock-title { margin: 8px 0 8px; font-size: clamp(24px, 4vw, 32px); line-height: 1.2; letter-spacing: -.02em; }
+  .lock-sub { margin: 0; color: var(--muted); font-size: 14px; max-width: 620px; }
+  .benefits { list-style: none; padding: 0; margin: 20px 0 22px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px 20px; }
+  .benefits li { position: relative; padding-left: 21px; font-size: 13.5px; color: #3c4640; line-height: 1.6; }
+  .benefits li::before { content: '✓'; position: absolute; left: 0; top: 0; color: var(--good); font-weight: 800; }
+  .lock-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .lock-foot { margin: 18px 0 0; font-size: 12px; color: var(--muted); }
+
+  .preview-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; padding: 8px 12px; background: #fbf7ec; border: 1px dashed #e2cfa6; border-radius: 10px; font-size: 12.5px; color: #6b5b3e; }
+
+  .modal-overlay { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 18px; background: rgba(24, 30, 27, .48); }
+  .modal { position: relative; width: min(480px, 100%); max-height: min(90vh, 720px); overflow: auto; background: var(--surface); border-radius: 18px; padding: 28px 26px 24px; box-shadow: 0 24px 80px rgba(0, 0, 0, .28); }
+  .modal-close { position: absolute; top: 8px; right: 12px; border: 0; background: none; color: var(--muted); font-size: 26px; line-height: 1; cursor: pointer; }
+  .modal-kicker { font-size: 11px; letter-spacing: .16em; font-weight: 750; color: var(--accent); }
+  .modal h2 { margin: 6px 0 6px; font-size: 25px; letter-spacing: -.02em; }
+  .modal-sub { margin: 0; font-size: 13px; color: var(--muted); }
+  .modal .benefits { margin: 16px 0 18px; gap: 7px 16px; }
+  .modal .benefits li { font-size: 13px; }
+  .btn.block { display: block; width: 100%; text-align: center; }
+  .modal-hint { margin: 10px 0 16px; font-size: 12px; color: var(--muted); }
+  .redeem-row { display: flex; gap: 8px; }
+  .redeem-row input { flex: 1; min-width: 0; }
+  .redeem-row .btn { white-space: nowrap; }
+  .redeem-msg { min-height: 18px; margin: 8px 0 0; font-size: 12.5px; color: var(--bad); }
+  .redeem-msg.ok { color: var(--good); }
+  .modal .btn.ghost.block { margin-top: 14px; }
+
   @media (max-width: 620px) {
     .page { padding: 20px 14px 40px; }
     .hero { padding-bottom: 20px; }
@@ -137,6 +178,12 @@
     .filters label { display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-width: 0; white-space: nowrap; }
     select { width: 100%; max-width: none; }
     .card { padding: 20px 16px 18px; border-radius: 15px; }
+    .lock-screen { padding: 26px 18px 22px; border-radius: 15px; }
+    .benefits { grid-template-columns: 1fr; }
+    .lock-actions .btn { flex: 1; }
+    .modal { padding: 24px 18px 20px; }
+    .redeem-row { flex-direction: column; }
+    .redeem-row .btn { width: 100%; }
     .card-top { margin-bottom: 14px; }
     .stem { font-size: 16px; }
     .option { padding: 12px; font-size: 14.5px; }
@@ -165,6 +212,15 @@
     <div class="progress-track" aria-hidden="true"><div id="globalProgress"></div></div>
   </header>
 
+  <section class="paybar" id="paybar" aria-live="polite">
+    <div class="paybar-main">
+      <span id="quotaText">剩余免费 <strong id="quotaLeft">30</strong> 题</span>
+      <span aria-hidden="true">·</span>
+      <button type="button" id="quotaUnlock" class="paybar-link">解锁全部</button>
+    </div>
+    <span class="paybar-note" id="quotaNote">184 道题 · 解析 · 错题本</span>
+  </section>
+
   <section class="controls" aria-label="练习设置">
     <div class="modes" role="tablist" aria-label="练习模式">
       <button type="button" data-mode="seq" class="active" role="tab" aria-selected="true">顺序练习</button>
@@ -178,6 +234,10 @@
   </section>
 
   <main id="card" class="card">
+    <div id="previewBar" class="preview-bar hidden">
+      <span>预览模式：可查看题目，提交答案需解锁。</span>
+      <span><button type="button" id="previewUnlock" class="paybar-link">解锁</button> · <button type="button" id="previewExit" class="paybar-link">退出预览</button></span>
+    </div>
     <div class="card-top">
       <div class="crumb" id="queuePos"></div>
       <div class="badges">
@@ -235,6 +295,51 @@
     </section>
   </main>
 
+  <section id="lockScreen" class="lock-screen hidden" aria-live="polite">
+    <div class="lock-kicker">免费体验已结束</div>
+    <h2 class="lock-title">解锁全部 184 道题</h2>
+    <p class="lock-sub">你已经完成 30 道免费题。解锁后可继续练习，已有的进度和错题本都会保留。</p>
+    <ul class="benefits">
+      <li>184 道题，覆盖 8 个知识点</li>
+      <li>单选 / 判断 / 填空 / 简答 / 编程全题型</li>
+      <li>每题参考答案与解析</li>
+      <li>错题本自动收集，随时重练</li>
+      <li>练习进度、正确率与错题统计</li>
+      <li>刷新、换设备后重新输入兑换码即可</li>
+    </ul>
+    <div class="lock-actions">
+      <button type="button" id="lockBuy" class="btn primary">去爱发电解锁</button>
+      <button type="button" id="lockRedeem" class="btn">我有兑换码</button>
+      <button type="button" id="lockPreview" class="btn ghost">先看看第一题</button>
+    </div>
+    <p class="lock-foot">付款后 5 分钟内通过爱发电私信发送兑换码；未收到请留言订单号。</p>
+  </section>
+
+  <div id="payModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="payTitle">
+    <div class="modal">
+      <button type="button" id="payClose" class="modal-close" aria-label="关闭">×</button>
+      <div class="modal-kicker">解锁全部题目</div>
+      <h2 id="payTitle">¥9.9 一次买断</h2>
+      <p class="modal-sub">184 道题 · 全题型 · 参考答案与解析 · 错题本与进度统计</p>
+      <ul class="benefits">
+        <li>184 道题，覆盖 8 个知识点</li>
+        <li>单选 / 判断 / 填空 / 简答 / 编程全题型</li>
+        <li>每题参考答案与解析</li>
+        <li>错题本自动收集，随时重练</li>
+        <li>练习进度、正确率与错题统计</li>
+        <li>刷新、换设备后重新输入兑换码即可</li>
+      </ul>
+      <button type="button" id="buyBtn" class="btn primary block">去爱发电解锁</button>
+      <p class="modal-hint" id="buyHint">商品链接待作者填写；付款后 5 分钟内私信发兑换码。</p>
+      <div class="redeem-row">
+        <input id="redeemInput" type="text" placeholder="输入兑换码，如 PYQ-XXXX-XXXXXXXXXX" autocomplete="off" spellcheck="false">
+        <button type="button" id="redeemBtn" class="btn">兑换</button>
+      </div>
+      <p id="redeemMsg" class="redeem-msg" role="status"></p>
+      <button type="button" id="modalPreview" class="btn ghost block">先看看第一题</button>
+    </div>
+  </div>
+
   <div id="empty" class="empty hidden">
     <strong id="emptyTitle">当前筛选下没有题目</strong>
     <p id="emptyText">换一个题型或知识点试试。</p>
@@ -256,6 +361,23 @@
 (function () {
   'use strict';
 
+  /* ============================================================
+     付费软墙配置（阶段一）
+     - 作者只需修改 afdianUrl：拿到爱发电商品链接后替换下面的占位文案。
+     - freeLimit 是免费提交次数；改这里即可调整免费额度。
+     - 注意：本阶段是“软墙”，codeSecret 写在前端，查看源码即可获得，
+       只能防随手白嫖，不能防真正想破解的人。正式版必须把校验移到服务端。
+     - codeSecret 必须与 .env.local 里的 AFDIAN_SECRET、tools/code-lib.mjs 的默认值完全一致，
+       否则脚本生成的兑换码前端无法识别。此值在本阶段是公开的，不要复用到其他服务。
+     ============================================================ */
+  var PAY_CONFIG = {
+    afdianUrl: '待填：爱发电商品链接',
+    freeLimit: 30,
+    priceText: '¥9.9',
+    codeSecret: 'MQ677QWERTYUIOPASDFGHJKL9Xb2sN7z',
+    codePrefix: 'v1|'
+  };
+
   var DATA = JSON.parse(document.getElementById('qdata').textContent);
   var TYPE_LABEL = { single: '单选', judge: '判断', fill: '填空', short: '简答', code: '编程' };
   var TYPE_ORDER = ['single', 'judge', 'fill', 'short', 'code'];
@@ -266,6 +388,13 @@
   if (!progress || typeof progress !== 'object' || Array.isArray(progress)) progress = {};
   var wrong = new Set(loadJSON('pyquiz:wrong', []) || []);
   if (!(wrong instanceof Set)) wrong = new Set();
+
+  /* 付费软墙的本地状态：已用次数、已计费题目、是否已解锁 */
+  var usedCount = Math.max(0, Number(loadJSON('pyquiz:used', 0)) || 0);
+  var chargedIds = new Set(loadJSON('pyquiz:charged', []) || []);
+  if (!(chargedIds instanceof Set)) chargedIds = new Set();
+  var unlocked = loadJSON('pyquiz:unlocked', false) === true;
+  var previewMode = false;
 
   var state = {
     mode: 'seq',
@@ -319,6 +448,247 @@
     toastTimer = setTimeout(function () { el.classList.remove('show'); }, 1800);
   }
 
+  /* ===================== 付费软墙逻辑 ===================== */
+  function freeRemaining() {
+    return Math.max(0, PAY_CONFIG.freeLimit - usedCount);
+  }
+
+  function isLocked() {
+    return !unlocked && usedCount >= PAY_CONFIG.freeLimit;
+  }
+
+  function persistBilling() {
+    try {
+      localStorage.setItem('pyquiz:used', String(usedCount));
+      localStorage.setItem('pyquiz:charged', JSON.stringify(Array.from(chargedIds)));
+      localStorage.setItem('pyquiz:unlocked', unlocked ? 'true' : 'false');
+    } catch (e) { /* 忽略隐私模式下的写入失败 */ }
+  }
+
+  function updateQuotaUI() {
+    var bar = $('paybar');
+    if (!bar) return;
+    var text = $('quotaText');
+    var note = $('quotaNote');
+    var btn = $('quotaUnlock');
+    bar.classList.toggle('unlocked', unlocked);
+    if (unlocked) {
+      bar.classList.remove('warn');
+      text.textContent = '已解锁全部 184 道题';
+      note.textContent = '感谢支持 · 进度与错题本继续保留';
+      btn.classList.add('hidden');
+      return;
+    }
+    var left = freeRemaining();
+    bar.classList.toggle('warn', left > 0 && left <= 5);
+    text.innerHTML = '剩余免费 <strong id="quotaLeft">' + left + '</strong> 题';
+    note.textContent = left <= 0
+      ? '免费额度已用完，解锁后继续'
+      : (left <= 5 ? '快用完了 · 解锁后继续' : '184 道题 · 解析 · 错题本');
+    btn.classList.remove('hidden');
+  }
+
+  function chargeQuestion(q) {
+    if (unlocked || chargedIds.has(q.id)) return;
+    chargedIds.add(q.id);
+    usedCount += 1;
+    persistBilling();
+    updateQuotaUI();
+    var left = freeRemaining();
+    if (left === 5) toast('免费额度只剩 5 题，解锁后可继续');
+    else if (left === 0) toast('免费额度已用完，解锁后可继续下一题');
+  }
+
+  function showLockScreen() {
+    previewMode = false;
+    $('lockScreen').classList.remove('hidden');
+    $('previewBar').classList.add('hidden');
+    card.classList.add('hidden');
+    emptyBox.classList.add('hidden');
+    var controls = document.querySelector('.controls');
+    if (controls) controls.classList.add('hidden');
+  }
+
+  function leaveLockScreen() {
+    $('lockScreen').classList.add('hidden');
+  }
+
+  function openPayModal() {
+    $('payModal').classList.remove('hidden');
+    setRedeemMsg('', false);
+    setTimeout(function () {
+      var input = $('redeemInput');
+      if (input) input.focus();
+    }, 60);
+  }
+
+  function closePayModal() {
+    $('payModal').classList.add('hidden');
+  }
+
+  function setRedeemMsg(message, ok) {
+    var el = $('redeemMsg');
+    if (!el) return;
+    el.textContent = message || '';
+    el.classList.toggle('ok', !!ok);
+  }
+
+  function goAfdian() {
+    var url = String(PAY_CONFIG.afdianUrl || '').trim();
+    if (!/^https?:\/\//i.test(url)) {
+      toast('爱发电商品链接待作者填写');
+      return;
+    }
+    window.open(url, '_blank', 'noopener');
+  }
+
+  function enterPreview() {
+    closePayModal();
+    leaveLockScreen();
+    previewMode = true;
+    state.queue = DATA.length ? [DATA[0]] : [];
+    state.index = 0;
+    resetCardState();
+    $('previewBar').classList.remove('hidden');
+    var controls = document.querySelector('.controls');
+    if (controls) controls.classList.add('hidden');
+    if (!state.queue.length) {
+      card.classList.add('hidden');
+      renderEmpty();
+      return;
+    }
+    card.classList.remove('hidden');
+    emptyBox.classList.add('hidden');
+    render();
+    scrollToCard();
+  }
+
+  function exitPreview() {
+    previewMode = false;
+    $('previewBar').classList.add('hidden');
+    if (isLocked()) {
+      showLockScreen();
+      return;
+    }
+    var controls = document.querySelector('.controls');
+    if (controls) controls.classList.remove('hidden');
+    rebuildQueue(false);
+  }
+
+  function applyUnlock() {
+    unlocked = true;
+    persistBilling();
+    updateQuotaUI();
+    closePayModal();
+    leaveLockScreen();
+    previewMode = false;
+    $('previewBar').classList.add('hidden');
+    var controls = document.querySelector('.controls');
+    if (controls) controls.classList.remove('hidden');
+    rebuildQueue(false);
+    toast('兑换成功，已解锁全部 184 道题');
+  }
+
+  /* 与 tools/code-lib.mjs 相同的 Crockford Base32 + HMAC-SHA256 截断方案 */
+  var B32_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+
+  function b32encode(bytes) {
+    var bits = 0, value = 0, out = '';
+    for (var i = 0; i < bytes.length; i++) {
+      value = (value << 8) | bytes[i];
+      bits += 8;
+      while (bits >= 5) {
+        out += B32_ALPHABET[(value >>> (bits - 5)) & 31];
+        bits -= 5;
+      }
+    }
+    if (bits > 0) out += B32_ALPHABET[(value << (5 - bits)) & 31];
+    return out;
+  }
+
+  function fromB32(str) {
+    var n = 0n;
+    for (var i = 0; i < str.length; i++) {
+      var idx = B32_ALPHABET.indexOf(str.charAt(i));
+      if (idx < 0) return null;
+      n = n * 32n + BigInt(idx);
+    }
+    return n > 0n ? n.toString() : null;
+  }
+
+  function hmacB32(message, len) {
+    var enc = new TextEncoder();
+    return window.crypto.subtle.importKey(
+      'raw', enc.encode(PAY_CONFIG.codeSecret),
+      { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+    ).then(function (key) {
+      return window.crypto.subtle.sign('HMAC', key, enc.encode(message));
+    }).then(function (sig) {
+      return b32encode(new Uint8Array(sig)).slice(0, len);
+    });
+  }
+
+  function safeEqual(a, b) {
+    if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+    var diff = 0;
+    for (var i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    return diff === 0;
+  }
+
+  async function verifyRedeemCode(raw) {
+    var code = String(raw || '').toUpperCase().replace(/[^0-9A-Z]/g, '');
+    if (code.indexOf('PYQ') !== 0 || code.length < 14) {
+      return { ok: false, reason: 'format' };
+    }
+    var body = code.slice(3);
+    var sig = body.slice(-10);
+    var orderKey = body.slice(0, -10);
+    var orderNo = fromB32(orderKey);
+    if (!orderNo) return { ok: false, reason: 'format' };
+    var want = await hmacB32(PAY_CONFIG.codePrefix + orderNo, 10);
+    return safeEqual(sig, want)
+      ? { ok: true, orderNo: orderNo }
+      : { ok: false, reason: 'invalid' };
+  }
+
+  var redeemBusy = false;
+
+  async function tryRedeem() {
+    if (redeemBusy) return;
+    var input = $('redeemInput');
+    var code = input ? input.value.trim() : '';
+    if (!code) {
+      setRedeemMsg('请输入兑换码', false);
+      return;
+    }
+    if (!window.crypto || !window.crypto.subtle) {
+      setRedeemMsg('当前浏览器不支持本地校验，请换用最新版浏览器或通过 https 访问', false);
+      return;
+    }
+    redeemBusy = true;
+    var btn = $('redeemBtn');
+    var oldText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '校验中…';
+    setRedeemMsg('正在校验…', true);
+    try {
+      var result = await verifyRedeemCode(code);
+      if (!result.ok) {
+        setRedeemMsg('兑换码无效，请核对后重试', false);
+        return;
+      }
+      if (input) input.value = '';
+      setRedeemMsg('', false);
+      applyUnlock();
+    } catch (e) {
+      setRedeemMsg('校验失败，请稍后重试', false);
+    } finally {
+      redeemBusy = false;
+      btn.disabled = false;
+      btn.textContent = oldText;
+    }
+  }
+
   function shuffle(arr) {
     for (var i = arr.length - 1; i > 0; i--) {
       var j = Math.floor(Math.random() * (i + 1));
@@ -339,6 +709,10 @@
   }
 
   function rebuildQueue(keepCurrent) {
+    if (!unlocked && isLocked() && !previewMode) {
+      showLockScreen();
+      return;
+    }
     var prev = keepCurrent ? current() : null;
     var arr = buildPool();
     state.queue = arr;
@@ -635,12 +1009,21 @@
   function submit() {
     var q = current();
     if (!q) return;
+    if (previewMode) {
+      openPayModal();
+      return;
+    }
+    if (isLocked()) {
+      showLockScreen();
+      return;
+    }
     if (q.type === 'single' || q.type === 'judge') {
       if (!state.selected) {
         toast('请先选择一个答案');
         return;
       }
       var correct = state.selected === correctKeyOf(q);
+      chargeQuestion(q);
       state.submitted = true;
       state.result = correct;
       record(q, correct);
@@ -656,12 +1039,14 @@
       }
       var ok = checkFill(q, value);
       state.fillValue = value;
+      chargeQuestion(q);
       state.submitted = true;
       state.result = ok;
       record(q, ok);
       render();
       return;
     }
+    chargeQuestion(q);
     state.submitted = true;
     state.result = null;
     render();
@@ -681,6 +1066,10 @@
   }
 
   function next() {
+    if (!unlocked && isLocked() && !previewMode) {
+      showLockScreen();
+      return;
+    }
     if (state.index < state.queue.length - 1) {
       state.index++;
       resetCardState();
@@ -692,6 +1081,10 @@
   }
 
   function prev() {
+    if (!unlocked && isLocked() && !previewMode) {
+      showLockScreen();
+      return;
+    }
     if (state.index > 0) {
       state.index--;
       resetCardState();
@@ -746,6 +1139,30 @@
   $('selfWrong').addEventListener('click', function () { selfGrade(false); });
   $('removeWrong').addEventListener('click', removeCurrentWrong);
 
+  $('quotaUnlock').addEventListener('click', openPayModal);
+  $('lockBuy').addEventListener('click', goAfdian);
+  $('buyBtn').addEventListener('click', goAfdian);
+  $('lockRedeem').addEventListener('click', openPayModal);
+  $('lockPreview').addEventListener('click', enterPreview);
+  $('modalPreview').addEventListener('click', enterPreview);
+  $('payClose').addEventListener('click', closePayModal);
+  $('payModal').addEventListener('click', function (e) {
+    if (e.target === this) closePayModal();
+  });
+  $('redeemBtn').addEventListener('click', tryRedeem);
+  $('redeemInput').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      tryRedeem();
+    }
+  });
+  $('previewUnlock').addEventListener('click', openPayModal);
+  $('previewExit').addEventListener('click', exitPreview);
+
+  if (/^https?:\/\//i.test(String(PAY_CONFIG.afdianUrl || ''))) {
+    $('buyHint').textContent = '付款后 5 分钟内通过爱发电私信发送兑换码；未收到请留言订单号。';
+  }
+
   $('fillInput').addEventListener('input', function (e) {
     state.fillValue = e.target.value;
   });
@@ -773,6 +1190,15 @@
   });
 
   document.addEventListener('keydown', function (e) {
+    if (!$('payModal').classList.contains('hidden')) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closePayModal();
+      }
+      return;
+    }
+    if (!$('lockScreen').classList.contains('hidden')) return;
+
     var tag = (e.target.tagName || '').toLowerCase();
     var typing = tag === 'input' || tag === 'textarea';
 
@@ -806,6 +1232,7 @@
   });
 
   buildFilters();
+  updateQuotaUI();
   rebuildQueue(false);
   updateStats();
 })();
