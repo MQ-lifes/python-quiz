@@ -1,6 +1,12 @@
-﻿# 仅发布 index.html，其余本地文件不入库
-*.pdf
-*.txt
-node_modules/
+# 本地凭据：绝不提交
+.env.local
+.env.local.*
+!.env.local.example
+
+# 工具、状态与出码结果：只放本地，不进 GitHub Pages 仓库
+tools/
+docs/
+
+# 常见系统/编辑器文件
 .DS_Store
 Thumbs.db
