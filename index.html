@@ -164,6 +164,13 @@
   .redeem-msg { min-height: 18px; margin: 8px 0 0; font-size: 12.5px; color: var(--bad); }
   .redeem-msg.ok { color: var(--good); }
   .modal .btn.ghost.block { margin-top: 14px; }
+  .auto-unlock { margin: 0 0 16px; padding: 12px 14px; border: 1px dashed #cfe0da; background: #f4faf8; border-radius: 12px; }
+  .auto-unlock-title { margin: 0 0 8px; font-size: 12.5px; color: #3c4640; font-weight: 650; }
+  .unlock-code-row { display: flex; align-items: center; gap: 8px; }
+  #unlockCode { flex: 1; min-width: 0; font-family: var(--mono); font-size: 17px; letter-spacing: .08em; font-weight: 750; color: var(--accent); background: #fff; border: 1px solid #cfe0da; border-radius: 9px; padding: 8px 10px; text-align: center; user-select: all; }
+  .unlock-code-row .btn { white-space: nowrap; padding: 8px 12px; }
+  .unlock-status { margin: 8px 0 0; font-size: 12px; color: var(--muted); min-height: 17px; }
+  .unlock-status.ok { color: var(--good); }
 
   @media (max-width: 620px) {
     .page { padding: 20px 14px 40px; }
@@ -331,6 +338,14 @@
       </ul>
       <button type="button" id="buyBtn" class="btn primary block">去爱发电解锁</button>
       <p class="modal-hint" id="buyHint">商品链接待作者填写；付款后 5 分钟内私信发兑换码。</p>
+      <div class="auto-unlock" id="autoUnlock">
+        <p class="auto-unlock-title">付款时请在备注里填：</p>
+        <div class="unlock-code-row">
+          <code id="unlockCode">MQ-XXXXX</code>
+          <button type="button" id="copyCode" class="btn ghost">复制</button>
+        </div>
+        <p class="unlock-status" id="unlockStatus" role="status" aria-live="polite"></p>
+      </div>
       <div class="redeem-row">
         <input id="redeemInput" type="text" placeholder="输入兑换码，如 PYQ-XXXX-XXXXXXXXXX" autocomplete="off" spellcheck="false">
         <button type="button" id="redeemBtn" class="btn">兑换</button>
@@ -372,6 +387,9 @@
      ============================================================ */
   var PAY_CONFIG = {
     afdianUrl: 'https://afdian.com/item/adf15b5cdcba11f1ba5752540025c377',
+    /* Worker 线上地址；留空 = 关闭自动解锁轮询，仅保留兑换码。
+       本地联调可用 window.PYQUIZ_API_BASE 覆盖。 */
+    apiBase: 'https://python-quiz-api.mq-lifes.workers.dev',
     freeLimit: 30,
     priceText: '¥1（测试价）',
     codeSecret: 'MQ677QWERTYUIOPASDFGHJKL9Xb2sN7z',
@@ -395,6 +413,8 @@
   if (!(chargedIds instanceof Set)) chargedIds = new Set();
   var unlocked = loadJSON('pyquiz:unlocked', false) === true;
   var previewMode = false;
+  var unlockCode = ensureUnlockCode();
+  var statusPoll = { timer: null, tries: 0, failures: 0 };
 
   var state = {
     mode: 'seq',
@@ -515,7 +535,9 @@
 
   function openPayModal() {
     $('payModal').classList.remove('hidden');
+    renderUnlockCode();
     setRedeemMsg('', false);
+    if (!unlocked) startStatusPolling();
     setTimeout(function () {
       var input = $('redeemInput');
       if (input) input.focus();
@@ -523,6 +545,7 @@
   }
 
   function closePayModal() {
+    stopStatusPolling();
     $('payModal').classList.add('hidden');
   }
 
@@ -531,6 +554,107 @@
     if (!el) return;
     el.textContent = message || '';
     el.classList.toggle('ok', !!ok);
+  }
+
+  function apiBaseUrl() {
+    var override = (typeof window !== 'undefined' && window.PYQUIZ_API_BASE) || '';
+    return String(override || PAY_CONFIG.apiBase || '').trim().replace(/\/+$/, '');
+  }
+
+  function ensureUnlockCode() {
+    var saved = String(loadJSON('pyquiz:unlockCode', '') || '').toUpperCase();
+    if (/^MQ-[0-9A-Z]{5}$/.test(saved)) return saved;
+    var alphabet = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    var bytes = new Uint8Array(5);
+    if (window.crypto && window.crypto.getRandomValues) {
+      window.crypto.getRandomValues(bytes);
+    } else {
+      for (var i = 0; i < 5; i++) bytes[i] = Math.floor(Math.random() * 256);
+    }
+    var code = 'MQ-';
+    for (var j = 0; j < 5; j++) code += alphabet[bytes[j] % alphabet.length];
+    try { localStorage.setItem('pyquiz:unlockCode', JSON.stringify(code)); } catch (e) { /* 隐私模式仅保留在内存 */ }
+    return code;
+  }
+
+  function renderUnlockCode() {
+    var el = $('unlockCode');
+    if (el) el.textContent = unlockCode;
+  }
+
+  function setUnlockStatus(message, ok) {
+    var el = $('unlockStatus');
+    if (!el) return;
+    el.textContent = message || '';
+    el.classList.toggle('ok', !!ok);
+  }
+
+  function stopStatusPolling() {
+    if (statusPoll.timer) {
+      clearInterval(statusPoll.timer);
+      statusPoll.timer = null;
+    }
+  }
+
+  function startStatusPolling() {
+    stopStatusPolling();
+    statusPoll = { timer: null, tries: 0, failures: 0 };
+    if (!apiBaseUrl()) {
+      setUnlockStatus('自动解锁尚未配置，请使用下方兑换码解锁。', false);
+      return;
+    }
+    setUnlockStatus('等待付款结果…付款后通常 1–5 分钟自动解锁。', false);
+    pollStatus();
+    statusPoll.timer = setInterval(pollStatus, 5000);
+  }
+
+  function pollStatus() {
+    if (unlocked) {
+      stopStatusPolling();
+      return;
+    }
+    if (statusPoll.tries >= 60) {
+      stopStatusPolling();
+      setUnlockStatus('自动解锁等待超时，可稍后重新打开本窗口，或使用兑换码。', false);
+      return;
+    }
+    statusPoll.tries += 1;
+    fetch(apiBaseUrl() + '/api/status?code=' + encodeURIComponent(unlockCode), { cache: 'no-store' })
+      .then(function (res) {
+        if (!res.ok) throw new Error('http ' + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        if (data && data.unlocked) {
+          stopStatusPolling();
+          applyUnlock('支付已确认，已自动解锁全部 184 道题');
+        } else {
+          statusPoll.failures = 0;
+          setUnlockStatus('已等待 ' + statusPoll.tries * 5 + ' 秒，付款后会自动解锁。', false);
+        }
+      })
+      .catch(function () {
+        statusPoll.failures += 1;
+        if (statusPoll.failures >= 3) {
+          stopStatusPolling();
+          setUnlockStatus('自动解锁接口暂不可用，请使用兑换码解锁，不影响做题。', false);
+        }
+      });
+  }
+
+  function copyUnlockCode() {
+    var done = function () { toast('解锁编号已复制：' + unlockCode); };
+    var fail = function () { toast('复制失败，请长按或手动选择复制'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(unlockCode).then(done, fail);
+      return;
+    }
+    var box = document.createElement('textarea');
+    box.value = unlockCode;
+    document.body.appendChild(box);
+    box.select();
+    try { document.execCommand('copy'); done(); } catch (e) { fail(); }
+    document.body.removeChild(box);
   }
 
   function goAfdian() {
@@ -575,7 +699,7 @@
     rebuildQueue(false);
   }
 
-  function applyUnlock() {
+  function applyUnlock(message) {
     unlocked = true;
     persistBilling();
     updateQuotaUI();
@@ -586,7 +710,7 @@
     var controls = document.querySelector('.controls');
     if (controls) controls.classList.remove('hidden');
     rebuildQueue(false);
-    toast('兑换成功，已解锁全部 184 道题');
+    toast(message || '兑换成功，已解锁全部 184 道题');
   }
 
   /* 与 tools/code-lib.mjs 相同的 Crockford Base32 + HMAC-SHA256 截断方案 */
@@ -1150,6 +1274,7 @@
     if (e.target === this) closePayModal();
   });
   $('redeemBtn').addEventListener('click', tryRedeem);
+  $('copyCode').addEventListener('click', copyUnlockCode);
   $('redeemInput').addEventListener('keydown', function (e) {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -1159,9 +1284,12 @@
   $('previewUnlock').addEventListener('click', openPayModal);
   $('previewExit').addEventListener('click', exitPreview);
 
-  if (/^https?:\/\//i.test(String(PAY_CONFIG.afdianUrl || ''))) {
+  if (apiBaseUrl()) {
+    $('buyHint').textContent = '付款时在备注里填写上方解锁编号，到账后 1–5 分钟自动解锁；也可使用兑换码。';
+  } else if (/^https?:\/\//i.test(String(PAY_CONFIG.afdianUrl || ''))) {
     $('buyHint').textContent = '付款后 5 分钟内通过爱发电私信发送兑换码；未收到请留言订单号。';
   }
+  renderUnlockCode();
 
   $('fillInput').addEventListener('input', function (e) {
     state.fillValue = e.target.value;
